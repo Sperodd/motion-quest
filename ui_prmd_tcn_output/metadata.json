@@ -1,0 +1,150 @@
+{
+  "config": {
+    "source_fps": 100,
+    "target_fps": 30,
+    "window": 90,
+    "stride": 30,
+    "channels": 64,
+    "dilations": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "kernel": 3,
+    "dropout": 0.2,
+    "batch_size": 64,
+    "epochs": 100,
+    "patience": 15,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "seed": 42
+  },
+  "classes": [
+    "M01 Deep Squat",
+    "M03 Inline Lunge",
+    "M04 Side Lunge",
+    "M06 Standing Active Straight Leg Raise",
+    "M07 Standing Shoulder Abduction"
+  ],
+  "codes": [
+    "m01",
+    "m03",
+    "m04",
+    "m06",
+    "m07"
+  ],
+  "joints": [
+    "left_shoulder",
+    "right_shoulder",
+    "left_elbow",
+    "right_elbow",
+    "left_wrist",
+    "right_wrist",
+    "left_hip",
+    "right_hip",
+    "left_knee",
+    "right_knee",
+    "left_ankle",
+    "right_ankle"
+  ],
+  "vicon_marker_groups_zero_based": [
+    [
+      9
+    ],
+    [
+      16
+    ],
+    [
+      11
+    ],
+    [
+      18
+    ],
+    [
+      13,
+      14
+    ],
+    [
+      20,
+      21
+    ],
+    [
+      23,
+      25
+    ],
+    [
+      24,
+      26
+    ],
+    [
+      28
+    ],
+    [
+      34
+    ],
+    [
+      30
+    ],
+    [
+      36
+    ]
+  ],
+  "mediapipe_indices": [
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28
+  ],
+  "splits": {
+    "train": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "val": [
+      7,
+      8
+    ],
+    "test": [
+      9,
+      10
+    ]
+  },
+  "input_shape": [
+    "batch",
+    90,
+    36
+  ],
+  "input_dtype": "float32",
+  "input": "body-normalized positions; standardization is inside model",
+  "vicon_up": [
+    0,
+    0,
+    1
+  ],
+  "mediapipe_up": [
+    0,
+    -1,
+    0
+  ],
+  "source": "Vicon Positions only; marker proxies are not anatomical joint centers",
+  "versions": {
+    "python": "3.13.16",
+    "torch": "2.14.1+cu130",
+    "numpy": "2.4.6",
+    "scipy": "1.16.3",
+    "sklearn": "1.6.1"
+  }
+}

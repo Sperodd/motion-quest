@@ -1,0 +1,12 @@
+{
+  "window_accuracy": 1.0,
+  "window_macro_f1": 1.0,
+  "window_balanced_accuracy": 1.0,
+  "best_validation_macro_f1": 1.0,
+  "best_epoch": 3,
+  "recording_accuracy": 1.0,
+  "test_subjects": [
+    9,
+    10
+  ]
+}

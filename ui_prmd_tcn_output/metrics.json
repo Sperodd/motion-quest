@@ -3,10 +3,14 @@
   "window_macro_f1": 1.0,
   "window_balanced_accuracy": 1.0,
   "best_validation_macro_f1": 1.0,
-  "best_epoch": 3,
+  "best_epoch": 1,
   "recording_accuracy": 1.0,
   "test_subjects": [
     9,
     10
-  ]
+  ],
+  "squat_lunge_subset_accuracy": 1.0,
+  "squat_to_lunge_rate": 0.0,
+  "lunge_to_squat_rate": 0.0,
+  "feature_schema": "positions_angles_v1"
 }

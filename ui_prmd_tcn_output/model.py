@@ -26,7 +26,7 @@ class PoseTCN(nn.Module):
         self.register_buffer('std',torch.as_tensor(std,dtype=torch.float32))
         blocks=[]
         for i,d in enumerate(cfg['dilations']):
-            blocks.append(TemporalBlock(36 if i==0 else cfg['channels'],cfg['channels'],
+            blocks.append(TemporalBlock(cfg['input_features'] if i==0 else cfg['channels'],cfg['channels'],
                                         d,cfg['kernel'],cfg['dropout']))
         self.blocks=nn.Sequential(*blocks)
         self.head=nn.Linear(cfg['channels'],5)

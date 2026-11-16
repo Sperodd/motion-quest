@@ -8,7 +8,7 @@ export class PoseRecorder {
   start({subject, label, split, seconds}, now) {
     if (this.active) throw new Error('이미 녹화 중입니다.');
     if (!/^[a-zA-Z0-9_-]{1,40}$/.test(subject)) throw new Error('피험자 ID는 영문/숫자/_/- 1~40자로 입력하세요.');
-    if (!['idle','m01','m03','m04','m06'].includes(label) || !['train','val','test'].includes(split)) throw new Error('라벨/분할을 확인하세요.');
+    if (!['idle','m01','m03','m04','m09'].includes(label) || !['train','val','test'].includes(split)) throw new Error('라벨/분할을 확인하세요.');
     if (!Number.isFinite(seconds) || seconds < 10 || seconds > 120) throw new Error('녹화 길이는 10~120초입니다.');
     this.active = {subject_id:subject, session_id:crypto.randomUUID(), label, split,
       requested_seconds:seconds, created_at:new Date().toISOString(),

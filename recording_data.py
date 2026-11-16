@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 import numpy as np
 
-RECORDING_CODES = ['m01','m03','m04','m06','idle']
+RECORDING_CODES = ['m01','m03','m04','m09','idle']
 
 
 def load_webcam_windows(path, joint_names, mp_ids, feature_fn, resample_fn,

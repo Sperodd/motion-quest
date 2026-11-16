@@ -72,6 +72,17 @@ class RecordingTests(unittest.TestCase):
         data=bundle(); data['recordings'][0]['frames']=data['recordings'][0]['frames'][::15]
         with self.assertRaisesRegex(ValueError,'no usable'): self.load(data)
 
+    def test_m09_mapping_and_m06_rejection(self):
+        data=bundle()
+        motion=copy.deepcopy(data['recordings'][0])
+        motion.update(session_id='m09_capture',label='m09')
+        for f in motion['frames']: f['joints'][4]['x'] += .05
+        data['recordings'].append(motion)
+        windows,_=self.load(data)
+        self.assertEqual({r['label'] for r in windows['train']},{3,4})
+        motion['label']='m06'
+        with self.assertRaisesRegex(ValueError,'invalid subject/split/label'): self.load(data)
+
     def test_notebook_loader_sync(self):
         nb=json.loads((ROOT/'ui_prmd_tcn_colab.ipynb').read_text(encoding='utf-8'))
         sources=[''.join(c['source']) for c in nb['cells'] if c['cell_type']=='code']
@@ -81,7 +92,7 @@ class RecordingTests(unittest.TestCase):
         env={'SEED':42}
         exec(next(s for s in sources if s.startswith('CLASSES')),env)
         self.assertEqual(env['NUM_CLASSES'],5)
-        self.assertEqual(env['CODES'],['m01','m03','m04','m06','idle'])
+        self.assertEqual(env['CODES'],['m01','m03','m04','m09','idle'])
 
 
 if __name__=='__main__': unittest.main()

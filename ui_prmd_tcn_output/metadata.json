@@ -26,14 +26,14 @@
     "M01 Deep Squat",
     "M03 Inline Lunge",
     "M04 Side Lunge",
-    "M06 Standing Active Straight Leg Raise",
+    "M09 Standing Shoulder Internal-External Rotation",
     "IDLE Standing Rest"
   ],
   "codes": [
     "m01",
     "m03",
     "m04",
-    "m06",
+    "m09",
     "idle"
   ],
   "joints": [

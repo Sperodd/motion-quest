@@ -3,7 +3,7 @@
   "window_macro_f1": 1.0,
   "window_balanced_accuracy": 1.0,
   "best_validation_macro_f1": 1.0,
-  "best_epoch": 2,
+  "best_epoch": 1,
   "recording_accuracy": 1.0,
   "test_subjects": [
     "mp_person01",

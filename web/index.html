@@ -3,11 +3,17 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pose Lab · 실시간 동작 테스트</title><link rel="stylesheet" href="/static/style.css"></head>
 <body><main>
 <header><div><span class="eyebrow">POSE LAB / LIVE TEST</span><h1>지금, 어떤 동작인가요?</h1><p>카메라에 전신을 담고 한 동작을 3초 이상 반복해 주세요.</p></div><span id="connection" class="badge">연결 대기</span></header>
+<section class="record-panel" aria-label="운동 구간 카운트">
+<h2>운동 구간 카운트</h2><p id="count-list">—</p><p id="count-status" role="status">카메라를 시작하세요.</p>
+<p id="count-detail" role="status"></p>
+<button id="count-reset" class="secondary">횟수 초기화</button>
+<p class="note">같은 클래스가 70% 이상으로 1초 연속 확인되면 현재 동작으로 확정합니다. 확정된 현재 동작이 idle → 운동 → idle로 바뀌면 해당 운동 +1입니다. 짧은 다른 예측이나 70% 미만 점수는 후보 시간만 초기화하며 현재 동작은 유지합니다. 별도 복귀 유예·추적 복구 대기 시간은 없습니다. 횟수는 이 페이지에만 보관됩니다.</p>
+</section>
 <section class="record-panel" aria-label="학습용 포즈 녹화">
 <h2>학습용 포즈 녹화</h2><p>idle: 운동하지 않고 자연스럽게 서 있기. 30초 × 5회(학습 3 / 검증 1 / 테스트 1)부터 시작하세요. 녹화 버튼을 누르면 5초 뒤 시작합니다. 영상은 저장하지 않습니다.</p>
 <div class="record-fields">
 <label>피험자 ID<input id="record-subject" value="person01" maxlength="40" autocomplete="off"></label>
-<label>정답 라벨<select id="record-label"><option value="idle">idle · 대기</option><option value="m01">M01 · 딥 스쿼트</option><option value="m03">M03 · 인라인 런지</option><option value="m04">M04 · 사이드 런지</option><option value="m06">M06 · 다리 들기</option></select></label>
+<label>정답 라벨<select id="record-label"><option value="idle">idle · 대기</option><option value="m01">M01 · 딥 스쿼트</option><option value="m03">M03 · 인라인 런지</option><option value="m04">M04 · 사이드 런지</option><option value="m09">M09 · 어깨 내·외회전</option></select></label>
 <label>데이터 분할<select id="record-split"><option value="train">학습 (train)</option><option value="val">검증 (val)</option><option value="test">테스트 (test)</option></select></label>
 <label>길이(초)<input id="record-seconds" type="number" min="10" max="120" value="30"></label>
 </div><div class="controls"><button id="record-start" disabled>녹화 시작</button><button id="record-cancel" class="secondary" disabled>녹화 중단</button><button id="record-download" class="secondary" disabled>모든 녹화 JSON 다운로드</button></div>
@@ -15,6 +21,11 @@
 <p class="note">새로고침 전에 JSON을 다운로드하세요. 녹화는 이 페이지 메모리에만 있습니다. 라벨은 직접 지정하며 모델 예측값으로 만들지 않습니다. 같은 녹화를 복사해 다른 분할에 넣지 마세요.</p>
 </section>
 <section class="layout"><div class="camera-card"><div class="camera"><video id="video" autoplay playsinline muted></video><canvas id="overlay"></canvas><div id="placeholder">카메라를 시작하면 여기에 표시됩니다.</div><span class="camera-label">MEDIAPIPE LITE · 영상은 이 브라우저에만</span></div><div class="controls"><button id="start">카메라 시작</button><button id="stop" class="secondary" disabled>중지</button><span id="fps">— FPS</span></div></div>
-<aside><span class="eyebrow">CURRENT MOVEMENT</span><h2 id="label">동작 대기 중</h2><p id="status" role="status" aria-live="polite">카메라 시작을 눌러 주세요.</p><progress id="progress" value="0" max="1"></progress><div class="stats"><div><span>모델 점수</span><strong id="score">—</strong></div><div><span>서버 처리</span><strong id="latency">—</strong></div></div><h3>클래스별 모델 점수</h3><div id="classes"></div><p class="note">점수는 자세의 정확도나 운동 품질이 아닙니다. 현재 모델은 <span id="class-count">5</span>개 클래스 중 하나를 선택합니다. idle 데이터 녹화 중에도 기존 모델은 운동으로 표시할 수 있으며 녹화 라벨에는 영향을 주지 않습니다.</p></aside></section>
+<aside><span class="eyebrow">CONFIRMED MOVEMENT</span><h2 id="label">아직 확정된 동작 없음</h2><p id="raw-prediction">실시간 모델 예측: —</p><p id="status" role="status" aria-live="polite">카메라 시작을 눌러 주세요.</p><progress id="progress" value="0" max="1"></progress><div class="stats"><div><span>현재 동작 확정 시 점수</span><strong id="score">—</strong></div><div><span>서버 처리</span><strong id="latency">—</strong></div></div><h3>클래스별 모델 점수</h3><div id="classes"></div><p class="note">점수는 자세의 정확도나 운동 품질이 아닙니다. 현재 모델은 <span id="class-count">5</span>개 클래스 중 하나를 선택합니다. idle 데이터 녹화 중에도 기존 모델은 운동으로 표시할 수 있으며 녹화 라벨에는 영향을 주지 않습니다.</p></aside></section>
 <footer><span id="model-info">카메라 시작 시 사용 중인 모델을 확인합니다.</span><br>12개 관절 위치만 전송 · 최근 3초로 분류 · 최대 초당 4회 갱신<br>Vicon 학습 모델의 MediaPipe 입력 테스트입니다. 정지 자세와 다른 동작은 오분류될 수 있습니다.</footer>
+<section class="record-panel" aria-label="Godot 웹 게임">
+<h2>Godot 웹 게임</h2><p>web/godot/Motion Quest.html 빌드를 실행합니다. 카메라는 위에서 먼저 시작하세요.</p>
+<button id="godot-load" class="secondary">Godot 게임 불러오기</button>
+<iframe id="godot-frame" title="Godot 웹 게임" hidden allow="fullscreen; autoplay" style="width:100%;height:540px;border:0;margin-top:16px"></iframe>
+</section>
 </main><script type="module" src="/static/app.js"></script></body></html>

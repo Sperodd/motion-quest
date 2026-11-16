@@ -29,7 +29,7 @@ class PoseTCN(nn.Module):
             blocks.append(TemporalBlock(cfg['input_features'] if i==0 else cfg['channels'],cfg['channels'],
                                         d,cfg['kernel'],cfg['dropout']))
         self.blocks=nn.Sequential(*blocks)
-        self.head=nn.Linear(cfg['channels'],5)
+        self.head=nn.Linear(cfg['channels'],cfg['num_classes'])
     def forward(self,x):
         x=((x-self.mean)/self.std).transpose(1,2)
         return self.head(self.blocks(x).mean(dim=-1))

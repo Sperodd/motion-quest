@@ -19,6 +19,7 @@
     "lr": 0.001,
     "weight_decay": 0.0001,
     "seed": 42,
+    "num_classes": 5,
     "input_features": 54
   },
   "classes": [
@@ -26,14 +27,14 @@
     "M03 Inline Lunge",
     "M04 Side Lunge",
     "M06 Standing Active Straight Leg Raise",
-    "M07 Standing Shoulder Abduction"
+    "IDLE Standing Rest"
   ],
   "codes": [
     "m01",
     "m03",
     "m04",
     "m06",
-    "m07"
+    "idle"
   ],
   "joints": [
     "left_shoulder",
@@ -254,7 +255,73 @@
     -1,
     0
   ],
-  "source": "Positions and angles derived from Vicon XYZ proxies; no native Angles files",
+  "source": "Vicon movement XYZ + labeled MediaPipe world XYZ recordings",
+  "webcam_recordings": [
+    {
+      "file": "webcam_recordings.json",
+      "session_id": "37edfb92-1656-4375-9d1d-990c927607e1",
+      "subject": "mp_person01",
+      "split": "train",
+      "label": "idle",
+      "frames": 900,
+      "seconds": 29.96540000000001,
+      "accepted_windows": 27,
+      "rejected_windows": 0,
+      "sha256": "16592f7b47b014f74fc814bae8f513e4e25d56daadd400e3e32f417258521f8b"
+    },
+    {
+      "file": "webcam_recordings.json",
+      "session_id": "615ac0f4-9d99-4cc5-bb36-5a7d91d95073",
+      "subject": "mp_person01",
+      "split": "train",
+      "label": "idle",
+      "frames": 900,
+      "seconds": 29.981899999999992,
+      "accepted_windows": 28,
+      "rejected_windows": 0,
+      "sha256": "b6aab0eba0b2fb1f71ecd8b4cd5e4eb50ec14c9b254f0148ff143088ce7539e2"
+    },
+    {
+      "file": "webcam_recordings.json",
+      "session_id": "ef8a4072-fe16-43c8-8ce6-c274f4fafcfe",
+      "subject": "mp_person01",
+      "split": "train",
+      "label": "idle",
+      "frames": 900,
+      "seconds": 29.9655,
+      "accepted_windows": 27,
+      "rejected_windows": 0,
+      "sha256": "182bc9bd61281243cdd387634671fc6ce644c77a98054dfef518b0b418177558"
+    },
+    {
+      "file": "webcam_recordings.json",
+      "session_id": "b1c61a6f-4087-4ee5-a5e2-e5b027d32dd2",
+      "subject": "mp_person01",
+      "split": "val",
+      "label": "idle",
+      "frames": 899,
+      "seconds": 29.948599999999978,
+      "accepted_windows": 27,
+      "rejected_windows": 0,
+      "sha256": "07e9d2583533d27233b171c233c1c01414a67b15b4843809d2bdbaf5b2cbb674"
+    },
+    {
+      "file": "webcam_recordings.json",
+      "session_id": "5d3ec66f-5e88-46b0-b759-e474fa52deee",
+      "subject": "mp_person01",
+      "split": "test",
+      "label": "idle",
+      "frames": 900,
+      "seconds": 29.96529999999999,
+      "accepted_windows": 27,
+      "rejected_windows": 0,
+      "sha256": "ce44f17b3080f5e4e9bb98ca64f7bb71e8d9286fd8ea9ffc098e60cc1a8155a3"
+    }
+  ],
+  "webcam_shared_subjects": [
+    "mp_person01"
+  ],
+  "evaluation_protocol": "Vicon subject split; webcam recording split unless strict mode enabled",
   "versions": {
     "python": "3.13.16",
     "torch": "2.14.1+cu130",

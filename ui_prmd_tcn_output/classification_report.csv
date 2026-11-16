@@ -3,7 +3,7 @@ M01 Deep Squat,1.0,1.0,1.0,52.0
 M03 Inline Lunge,1.0,1.0,1.0,51.0
 M04 Side Lunge,1.0,1.0,1.0,50.0
 M06 Standing Active Straight Leg Raise,1.0,1.0,1.0,35.0
-M07 Standing Shoulder Abduction,1.0,1.0,1.0,45.0
+IDLE Standing Rest,1.0,1.0,1.0,27.0
 accuracy,1.0,1.0,1.0,1.0
-macro avg,1.0,1.0,1.0,233.0
-weighted avg,1.0,1.0,1.0,233.0
+macro avg,1.0,1.0,1.0,215.0
+weighted avg,1.0,1.0,1.0,215.0

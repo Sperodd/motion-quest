@@ -1,3 +1,4 @@
 subject,accuracy,macro_f1
-9,1.0,1.0
-10,1.0,1.0
+mp_person01,1.0,1.0
+ui_s09,1.0,1.0
+ui_s10,1.0,1.0

@@ -152,7 +152,7 @@ class AngleModelTest(unittest.TestCase):
                     ws.send_json(frame(i*1000/30))
                     reply=ws.receive_json()
                 self.assertEqual(reply['status'],'prediction')
-                self.assertEqual(len(reply['probabilities']),5)
+                self.assertEqual(len(reply['probabilities']),len(self.metadata['classes']))
         original = (self.directory/'metadata.json').read_text()
         try:
             invalid = dict(self.metadata,preprocess_sha256='wrong')

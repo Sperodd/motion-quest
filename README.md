@@ -6,12 +6,34 @@
 웹캠 → 브라우저 MediaPipe Lite → 공통 12관절 XYZ JSON / WebSocket
  → 서버: 최근 3초 XYZ를 30 Hz로 보간
  → [몸 기준 위치 36 | 각도 18] = [90,54]
- → 모델 내부 채널별 표준화 → TCN → 5클래스 점수 → 브라우저
+ → 모델 내부 채널별 표준화 → TCN → 클래스별 점수 → 브라우저
 ```
 
 영상은 서버로 보내지 않습니다. 화면 미러링은 좌표를 바꾸지 않습니다. 버퍼는 연결마다 독립적입니다.
 
-## 위치+각도 모델로 전환 — 재학습 필수
+## 웹캠 idle 수집과 5클래스 재학습
+
+첫 개인 실험은 **30초 × 5회 = 150초**부터 시작하세요. 충분한 정확도를 보장하는 분량은 아니며, 준비 시간은 회당 5초 추가됩니다. train 3회, val 1회, test 1회로 각각 별도 녹화합니다. 사람은 서 있고 운동하지 않는 상태로, 자연스러운 미세 움직임은 허용합니다. 녹화 사이에 팔 모양과 카메라까지 거리를 조금 바꾸되 12관절이 모두 보여야 합니다. 스쿼트 자세 유지나 사람 없는 화면은 이 idle 라벨에 넣지 않습니다.
+
+1. 아래 실행 명령으로 서버를 켜고 http://localhost:8000 에서 **카메라 시작**을 누릅니다. 기존 5클래스 모델을 그대로 사용해 녹화할 수 있습니다.
+2. 녹화 패널에서 사람 ID(`person01` 등), 라벨 `idle`, 분할 `train`, 길이 `30`초를 지정해 3회 녹화합니다. 다음은 `val`로 1회, `test`로 1회 녹화합니다. 라벨은 직접 지정한 값이며 화면의 기존 모델 예측과 무관합니다.
+3. 중단된 녹화는 목록에서 삭제하고 다시 녹화합니다. **JSON 다운로드**로 전체 녹화를 한 파일에 저장합니다. 새로고침하면 메모리의 녹화는 사라집니다. 누적 다운로드 파일 여러 개를 함께 학습에 넣지 말고 마지막 파일 하나를 사용하세요.
+4. 선택적으로 `data/webcam_recordings.json`에 저장한 뒤 아래 명령으로 검증합니다.
+
+```powershell
+.\.venv\Scripts\python.exe scripts/check_recordings.py data/webcam_recordings.json
+```
+
+5. Google Drive의 `MyDrive`에 `Movements.zip`과 `webcam_recordings.json`을 올립니다. `ui_prmd_tcn_colab.ipynb`를 Colab에서 열고 GPU 런타임을 선택합니다. 데이터 준비 셀의 `MODE='drive'`, ZIP 경로, `WEBCAM_JSON='/content/drive/MyDrive/webcam_recordings.json'`을 확인하고 처음부터 끝까지 실행합니다. `WEBCAM_JSON`은 코드에서 `Path(...)`로 감싼 값을 사용합니다.
+6. 결과 `ui_prmd_tcn_output.zip`을 내려받습니다. 기존 출력 폴더를 별도 보관한 뒤 압축을 풀어 아래 모델 설치 절차대로 교체하고 서버를 재시작합니다. 브라우저 클래스 목록에 **IDLE 대기**가 추가됩니다.
+
+녹화는 영상 없이 기존 순서의 12개 world XYZ, visibility, 시간을 저장합니다. `recording_data.py`가 XYZ를 30 Hz로 보간한 후 서버와 동일한 `window_features()`로 위치 36 + 각도 18을 만듭니다. 90프레임 창을 1초 간격으로 만들고, visibility < 0.5 또는 관측 간격 > 200ms가 포함된 창은 제외합니다. 이 품질 필터는 학습 녹화용이며 현재 실시간 서버의 관대한 버퍼 정책과는 다릅니다. 모든 분할에 유효한 idle 창이 필요합니다. 중복 세션/동일 녹화 콘텐츠는 거부합니다.
+
+출력 순서는 `m01, m03, m04, m06, idle`이며 5클래스로 처음부터 재학습합니다. Vicon은 기존 사람별 분할을 유지하고 웹캠은 지정한 녹화별 분할을 사용합니다. 한 사람만 녹화한 결과는 새로운 사람에 대한 일반화 성능이 아닙니다. 여러 사람을 수집할 때 사람별 분할을 지정하고 `STRICT_WEBCAM_SUBJECT_SPLIT=True`로 검사하세요. 겹치는 창을 무작위로 나누거나 같은 녹화를 복사해서 다른 분할에 넣으면 안 됩니다.
+
+**idle만 MediaPipe이고 운동은 모두 Vicon이면 센서 차이를 정답 단서로 학습할 수 있습니다.** 녹화 패널에서 4개 운동 라벨도 선택할 수 있으므로 같은 웹캠으로 운동 샘플도 추가하는 것을 권장합니다. 특히 웹캠 운동 test 녹화가 있어야 실제 운동→idle 오분류를 평가할 수 있습니다. 노트북은 혼동행렬, 클래스별 지표, idle 오분류율과 센서별 지표를 저장합니다.
+
+## 학습 결과 설치 — 재학습 필수
 
 1. `ui_prmd_tcn_colab.ipynb`를 Colab에서 처음부터 실행합니다. 원본 Positions의 XYZ에서 두 특징을 모두 계산하며 UI-PRMD Angles 파일은 사용하지 않습니다.
 2. 결과는 `/content/ui_prmd_tcn_output`과 `ui_prmd_tcn_output.zip`에 저장됩니다. Drive 복사 이름도 `ui_prmd_tcn_output.zip`입니다. 같은 이름의 이전 결과가 있다면 비교를 위해 미리 보관하세요.
@@ -95,15 +117,18 @@ JS/WASM과 Lite 모델은 CDN에서 다운로드하므로 최초 실행에 인�
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 node --check web/app.js
 # 로컬 원본 데이터 전체의 각도 입력 검사 (pandas/scipy가 설치되어 있을 때)
-python scripts/validate_angle_data.py
+python scripts/validate_angle_data.py data/webcam_recordings.json
+node tests/test_recorder.mjs
 ```
 
 테스트는 기존 저장 모델 회귀 검사 및 새 54채널 TCN의 학습 연산/저장/로드, WebSocket 왕복, XYZ→위치+각도 입력 일치, 0/90/180도 공식, 단위/좌표계 변환, 좌우 반전, 잘못된 입력과 메타데이터 계약을 확인합니다. 통합 모델 테스트 가중치는 임시로 생성하며 실제 재학습 결과나 정확도 검증이 아닙니다.
 
-이전 모델의 Vicon 정확도와 별개로 새 통합 모델 및 MediaPipe 영상 정확도는 별도로 측정해야 합니다. 이 모델은 정지/배경/unknown을 학습하지 않아 어떤 입력도 5개 클래스 중 하나로 선택합니다. 화면의 점수는 softmax이며 올바른 운동 자세를 평가하는 점수가 아닙니다. 임의 임계값이나 평활화로 결과를 가리지 않고 원 모델 출력을 표시합니다.
+현재 저장된 기존 모델은 idle이 없는 5클래스입니다. 새 노트북으로 재학습하고 설치해야 idle을 포함한 5클래스가 됩니다. idle은 서서 대기하는 상태이며 모든 미지 동작이나 사람 없는 화면을 뜻하지 않습니다. 실제 MediaPipe 정확도는 별도로 측정해야 합니다. 화면의 점수는 softmax이며 올바른 운동 자세를 평가하는 점수가 아닙니다. 임의 임계값이나 평활화로 결과를 가리지 않고 원 모델 출력을 표시합니다.
 
 ## 이후 Godot 연결
 
 분류 프로토콜을 UI와 분리했습니다. 추후 Godot의 WebSocket 클라이언트가 같은 `/ws/pose` 계약을 사용하거나, 브라우저가 추정한 좌표를 넘겨주는 중계 계층을 추가할 수 있습니다. 현재는 브라우저가 자기 연결의 결과를 받으며, 별도 Godot 연결에 결과를 방송하는 기능은 아직 없습니다. 관절 추정 기능 자체를 Godot에 넣는 작업도 별도입니다.
 
 참고: [Google MediaPipe Web 가이드](https://developers.google.com/edge/mediapipe/solutions/vision/pose_landmarker?tab=Web).
+
+M07은 새 학습 및 녹화 대상에서 제외됩니다. 기존 JSON에 M07 녹화가 있다면 해당 녹화를 제외한 파일을 사용하세요. 기존 idle JSON은 그대로 사용할 수 있습니다. 원본 Movements의 M07 파일은 자동으로 건너뜁니다. 기존 모델에는 M07이 남아 있으므로 새 모델을 학습하고 출력 폴더 전체를 교체해야 반영됩니다.

@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import mimetypes
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -31,6 +32,11 @@ async def lifespan(app):
 
 
 app = FastAPI(title='Pose TCN local test', lifespan=lifespan)
+# Windows registry MIME associations may label JavaScript as text/plain.
+# Register after initialization so OS defaults cannot override these types.
+mimetypes.init()
+for extension in ('.js', '.mjs'):
+    mimetypes.add_type('text/javascript', extension)
 app.mount('/static', StaticFiles(directory=ROOT / 'web'), name='static')
 
 
@@ -43,7 +49,7 @@ def index():
 def config():
     p = app.state.predictor
     return {'version': 1, 'joints': p.metadata['joints'], 'mediapipe_indices': p.ids,
-            'classes': p.metadata['classes'], 'window': p.window, 'fps': p.fps,
+            'classes': p.metadata['classes'], 'codes': p.metadata['codes'], 'window': p.window, 'fps': p.fps,
             'inference_interval_ms': 250, 'visibility_threshold': 0.0,
             'feature_schema': p.feature_schema, 'input_features': p.input_features}
 

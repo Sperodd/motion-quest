@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import {PoseRecorder} from '../web/recorder.mjs';
+const config={joints:Array.from({length:12},(_,i)=>`j${i}`),mediapipe_indices:[11,12,13,14,15,16,23,24,25,26,27,28],fps:30};
+const recorder=new PoseRecorder(config);
+const joints=Array.from({length:12},()=>({x:0,y:1,z:2,visibility:.9}));
+recorder.start({subject:'person01',label:'idle',split:'train',seconds:30},0);
+recorder.capture(4999,joints);assert.equal(recorder.active.frames.length,0);
+for(let t=5000;t<35000;t+=1000/30) recorder.capture(t,joints);
+assert.equal(recorder.tick(34999),null);
+const done=recorder.tick(35000);
+assert.equal(done.completion,'completed');assert.ok(done.frames.length>=899);
+assert.equal(done.frames[0].timestamp_ms,0);
+assert.deepEqual(recorder.bundle().mediapipe_indices,config.mediapipe_indices);
+assert.equal(recorder.bundle().recordings[0].label,'idle');
+recorder.start({subject:'person01',label:'idle',split:'test',seconds:30},40000);
+recorder.capture(45000,joints);recorder.finish();
+assert.equal(recorder.records[1].completion,'interrupted');
+assert.notEqual(recorder.records[0].session_id,recorder.records[1].session_id);
+assert.throws(()=>recorder.start({subject:'bad id',label:'idle',split:'train',seconds:30},0));
+console.log('Recorder tests passed: countdown, duration, mapping, manual labels, interruption.');
+
+assert.throws(()=>recorder.start({subject:'person01',label:'m07',split:'train',seconds:30},0));

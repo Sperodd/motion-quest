@@ -7,18 +7,11 @@ import numpy as np
 from fastapi.testclient import TestClient
 
 from server.app import app
-from server.inference import PoseSession, Predictor
+from tests.helpers import frame
+from server.inference import Predictor
+from server.session import PoseSession
 
 ROOT = Path(__file__).resolve().parents[1]
-
-
-def frame(t):
-    # Synthetic standing skeleton in MediaPipe world coordinates (not an accuracy test).
-    points = [[-.2,-.6,0],[.2,-.6,0],[-.3,-.3,0],[.3,-.3,0],
-              [-.3,0,0],[.3,0,0],[-.15,0,0],[.15,0,0],
-              [-.15,.5,0],[.15,.5,0],[-.15,1,0],[.15,1,0]]
-    return {'version':1,'type':'frame','coordinate_system':'mediapipe_world','timestamp_ms':t,
-            'joints':[dict(zip(['x','y','z'],p),visibility=1.) for p in points]}
 
 
 class StreamingTest(unittest.TestCase):

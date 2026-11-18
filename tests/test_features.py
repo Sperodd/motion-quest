@@ -14,7 +14,7 @@ from fastapi.testclient import TestClient
 import pose_features as features
 from server.app import app
 from server.inference import Predictor
-from test_stream import frame
+from tests.helpers import frame
 
 ROOT = Path(__file__).resolve().parents[1]
 

@@ -12,10 +12,9 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from .inference import PoseSession, Predictor
-
-ROOT = Path(__file__).resolve().parents[1]
-
+from .inference import Predictor
+from .session import PoseSession
+from .settings import ROOT, INFERENCE_INTERVAL_MS, MAX_MESSAGE_BYTES
 
 @asynccontextmanager
 async def lifespan(app):
@@ -50,7 +49,7 @@ def config():
     p = app.state.predictor
     return {'version': 1, 'joints': p.metadata['joints'], 'mediapipe_indices': p.ids,
             'classes': p.metadata['classes'], 'codes': p.metadata['codes'], 'window': p.window, 'fps': p.fps,
-            'inference_interval_ms': 250, 'visibility_threshold': 0.0,
+            'inference_interval_ms': INFERENCE_INTERVAL_MS, 'visibility_threshold': 0.0,
             'feature_schema': p.feature_schema, 'input_features': p.input_features}
 
 
@@ -66,7 +65,7 @@ async def stream(ws: WebSocket):
     try:
         while True:
             raw = await ws.receive_text()
-            if len(raw) > 16000:
+            if len(raw.encode('utf-8')) > MAX_MESSAGE_BYTES:
                 await ws.close(code=1009)
                 return
             try:

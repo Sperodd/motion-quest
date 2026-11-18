@@ -8,7 +8,7 @@ import numpy as np
 
 import pose_features as pf
 from recording_data import load_webcam_windows
-from test_stream import frame
+from tests.helpers import frame
 
 ROOT=Path(__file__).resolve().parents[1]
 

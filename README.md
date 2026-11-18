@@ -123,7 +123,7 @@ JS/WASM과 Lite 모델은 CDN에서 다운로드하므로 최초 실행에 인�
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 node --check web/app.js
 # 로컬 원본 데이터 전체의 각도 입력 검사 (pandas/scipy가 설치되어 있을 때)
-python scripts/validate_angle_data.py data/webcam_recordings.json
+python scripts/validate_training_data.py data/webcam_recordings.json
 node tests/test_recorder.mjs
 ```
 
@@ -157,3 +157,28 @@ Godot Web 내보내기 파일 전체를 `godot/`에 넣고 HTML 이름을 `Motio
 참고: [Google MediaPipe Web 가이드](https://developers.google.com/edge/mediapipe/solutions/vision/pose_landmarker?tab=Web).
 
 M07은 새 학습 및 녹화 대상에서 제외됩니다. 기존 JSON에 M07 녹화가 있다면 해당 녹화를 제외한 파일을 사용하세요. 기존 idle JSON은 그대로 사용할 수 있습니다. 원본 Movements의 M07 파일은 자동으로 건너뜁니다. 기존 모델에는 M07이 남아 있으므로 새 모델을 학습하고 출력 폴더 전체를 교체해야 반영됩니다.
+
+
+## 코드 구성과 개발 검증
+
+- `server/app.py`: HTTP/WebSocket 라우팅과 앱 시작/종료.
+- `server/inference.py`: 모델 계약 검사, 특징 변환, TCN 실행.
+- `server/session.py`: 연결별 프레임 검사·버퍼·추론 주기 관리.
+- `server/settings.py`: 서버 경로와 통신 제한의 공통 설정.
+- `pose_features.py` / `recording_data.py`: Colab에도 삽입되는 독립 전처리·녹화 로더. 모델 해시와 호환성을 위해 학습 결과의 사본도 필요합니다.
+- `web/`: 화면 연결 코드와 카운터·녹화·Godot 통신 모듈.
+- `tests/helpers.py`: 테스트 사이에서 공유하는 입력 샘플.
+
+실행 서버는 `requirements.txt`, 테스트 및 로컬 데이터 검증은 `requirements-dev.txt`를 설치합니다.
+
+```powershell
+python -m pip install -r requirements-dev.txt
+python -m unittest discover -s tests -v
+node --test tests/test_*.mjs
+```
+
+`ui_prmd_tcn_output.zip`은 모델 폴더와 동일한 배포용 압축본이므로 Git 추적에서 제외합니다. 학습 노트북은 계속 같은 이름으로 ZIP을 생성합니다. 현재 모델 폴더를 압축하려면 다음을 실행합니다.
+
+```powershell
+Compress-Archive -LiteralPath ui_prmd_tcn_output -DestinationPath ui_prmd_tcn_output.zip -Force
+```

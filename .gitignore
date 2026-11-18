@@ -2,4 +2,7 @@
 /.venv/
 __pycache__/
 *.pyc
+/.runtime_deps/
+/.pytest_cache/
+/ui_prmd_tcn_output.zip
 godot/

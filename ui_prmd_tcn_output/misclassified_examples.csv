@@ -1,0 +1,12 @@
+file,subject,source,start_frame,true,tcn_pred,lstm_pred,tcn_confidence,lstm_confidence
+m01_s10_positions.txt,ui_s10,vicon,690,m01,m01,m09,0.9651681,0.4892822
+m09_s10_positions.txt,ui_s10,vicon,0,m09,m09,m01,0.94487256,0.5408299
+m09_s10_positions.txt,ui_s10,vicon,30,m09,m09,m01,0.9413331,0.5741464
+m09_s10_positions.txt,ui_s10,vicon,60,m09,m09,m01,0.9417279,0.440387
+m09_s10_positions.txt,ui_s10,vicon,90,m09,m09,m01,0.9323831,0.36670396
+m09_s10_positions.txt,ui_s10,vicon,120,m09,m09,m04,0.94081736,0.3766342
+m09_s10_positions.txt,ui_s10,vicon,240,m09,m09,m04,0.93659455,0.3941278
+m09_s10_positions.txt,ui_s10,vicon,300,m09,m09,m01,0.9383448,0.38141406
+m09_s10_positions.txt,ui_s10,vicon,360,m09,m09,m01,0.9422365,0.35177684
+m09_s10_positions.txt,ui_s10,vicon,390,m09,m09,m04,0.9458237,0.37320527
+m09_s10_positions.txt,ui_s10,vicon,450,m09,m09,m04,0.94040686,0.39189145

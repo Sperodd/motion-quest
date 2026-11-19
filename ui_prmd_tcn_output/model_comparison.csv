@@ -1,0 +1,6 @@
+model,type,accuracy,macro_f1,balanced_accuracy,squat_to_lunge_rate,lunge_to_squat_rate,recording_accuracy,best_validation_macro_f1,best_epoch,epochs_run,parameters,selected
+TCN (proposed),trained from scratch,1.0,1.0,1.0,0.0,0.0,1.0,1.0,1.0,16.0,101765.0,True
+LSTM (baseline),trained from scratch,0.9523809523809523,0.95580774163195,0.9569381598793363,0.0,0.0,1.0,1.0,4.0,19.0,64325.0,False
+Dummy (most frequent),label prior only,0.21645021645021645,0.0711743772241993,0.2,,,,,,,,False
+Dummy (stratified),label prior only,0.19653679653679654,0.1860918818668466,0.18831375900787664,,,,,,,,False
+Dummy (uniform),label prior only,0.19956709956709956,0.19435592391328327,0.19445781799899448,,,,,,,,False

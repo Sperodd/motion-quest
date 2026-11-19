@@ -19,6 +19,20 @@
   "webcam_shared_subjects": [
     "mp_person01"
   ],
+  "lstm_baseline": {
+    "window_accuracy": 0.9523809523809523,
+    "window_macro_f1": 0.95580774163195,
+    "window_balanced_accuracy": 0.9569381598793363,
+    "recording_accuracy": 1.0,
+    "squat_to_lunge_rate": 0.0,
+    "lunge_to_squat_rate": 0.0,
+    "best_validation_macro_f1": 1.0,
+    "best_epoch": 4,
+    "epochs_run": 19,
+    "parameters": 64325,
+    "hidden": 64,
+    "layers": 2
+  },
   "baseline_comparison": {
     "UI-PRMD Vicon test (4 movements)": {
       "TCN (positions + angles)": {
@@ -63,6 +77,38 @@
         "macro_f1": 0.19435592391328327,
         "balanced_accuracy": 0.19445781799899448
       }
+    }
+  },
+  "final_model": {
+    "name": "TCN (proposed)",
+    "reason": "test Macro-F1 1.0000로 가장 높음",
+    "rule": "test macro-F1 -> balanced accuracy -> TCN (deployed) on ties"
+  },
+  "model_comparison": {
+    "TCN (proposed)": {
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "balanced_accuracy": 1.0
+    },
+    "LSTM (baseline)": {
+      "accuracy": 0.9523809523809523,
+      "macro_f1": 0.95580774163195,
+      "balanced_accuracy": 0.9569381598793363
+    },
+    "Dummy (most frequent)": {
+      "accuracy": 0.21645021645021645,
+      "macro_f1": 0.0711743772241993,
+      "balanced_accuracy": 0.2
+    },
+    "Dummy (stratified)": {
+      "accuracy": 0.19653679653679654,
+      "macro_f1": 0.1860918818668466,
+      "balanced_accuracy": 0.18831375900787664
+    },
+    "Dummy (uniform)": {
+      "accuracy": 0.19956709956709956,
+      "macro_f1": 0.19435592391328327,
+      "balanced_accuracy": 0.19445781799899448
     }
   }
 }

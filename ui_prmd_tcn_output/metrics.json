@@ -18,5 +18,51 @@
   "movement_to_idle_rate": 0.0,
   "webcam_shared_subjects": [
     "mp_person01"
-  ]
+  ],
+  "baseline_comparison": {
+    "UI-PRMD Vicon test (4 movements)": {
+      "TCN (positions + angles)": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "balanced_accuracy": 1.0
+      },
+      "Dummy (most frequent)": {
+        "accuracy": 0.24509803921568626,
+        "macro_f1": 0.0984251968503937,
+        "balanced_accuracy": 0.25
+      },
+      "Dummy (stratified)": {
+        "accuracy": 0.20833333333333331,
+        "macro_f1": 0.21973221139351046,
+        "balanced_accuracy": 0.20854034690799397
+      },
+      "Dummy (uniform)": {
+        "accuracy": 0.2068627450980392,
+        "macro_f1": 0.23034277659775157,
+        "balanced_accuracy": 0.20696116138763196
+      }
+    },
+    "Full test (Vicon + webcam idle)": {
+      "TCN (positions + angles)": {
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "balanced_accuracy": 1.0
+      },
+      "Dummy (most frequent)": {
+        "accuracy": 0.21645021645021645,
+        "macro_f1": 0.0711743772241993,
+        "balanced_accuracy": 0.2
+      },
+      "Dummy (stratified)": {
+        "accuracy": 0.19653679653679654,
+        "macro_f1": 0.1860918818668466,
+        "balanced_accuracy": 0.18831375900787664
+      },
+      "Dummy (uniform)": {
+        "accuracy": 0.19956709956709956,
+        "macro_f1": 0.19435592391328327,
+        "balanced_accuracy": 0.19445781799899448
+      }
+    }
+  }
 }

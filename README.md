@@ -7,10 +7,10 @@
 | 항목 | 내용 |
 |---|---|
 | 프로젝트명 | Motion Quest |
-| 학번 | |
-| 이름 | |
-| 데모 URL | |
-| GitHub URL | |
+| 학번 | 202435119 |
+| 이름 | 한여원 |
+| 데모 URL | 미배포 — 로컬 실행 (8절 참고) |
+| GitHub URL | https://github.com/Sperodd/motion-quest|
 | 주요 기술 | Python, PyTorch, TCN, MediaPipe Lite, FastAPI, WebSocket, JavaScript, Godot |
 
 ## 1. 문제 정의
@@ -238,6 +238,36 @@ TCN은 무작위 초기화 후 **처음부터 직접 학습**했습니다. 브�
 
 근거 파일: [metrics.json](ui_prmd_tcn_output/metrics.json), [classification_report.csv](ui_prmd_tcn_output/classification_report.csv), [source_scores.csv](ui_prmd_tcn_output/source_scores.csv), [history.csv](ui_prmd_tcn_output/history.csv).
 
+### Dummy baseline 비교
+
+입력 특징을 보지 않고 **train 라벨 분포만** 사용하는 `sklearn.dummy.DummyClassifier`를 기준선으로 두고, 같은 test 창에서 TCN과 비교했습니다. 기준선은 train 최빈 클래스(M04)만 예측하는 `most_frequent`, train 클래스 비율대로 무작위 예측하는 `stratified`, 5개 클래스를 균등하게 무작위 예측하는 `uniform`입니다. 무작위 기준선은 seed 42~51, 10회의 평균 ± 표준편차입니다.
+
+UI-PRMD(Vicon) test — 4개 운동:
+
+| 모델 | 창 수 | Accuracy | Macro-F1 | Balanced Accuracy |
+|---|---:|---:|---:|---:|
+| **TCN (위치 + 각도)** | 204 | **1.0000** | **1.0000** | **1.0000** |
+| Dummy — most frequent | 204 | 0.2451 | 0.0984 | 0.2500 |
+| Dummy — stratified | 204 | 0.2083 ± 0.0198 | 0.2197 ± 0.0201 | 0.2085 ± 0.0199 |
+| Dummy — uniform | 204 | 0.2069 ± 0.0267 | 0.2303 ± 0.0290 | 0.2070 ± 0.0266 |
+
+전체 test — Vicon 운동 + 웹캠 idle, 5개 클래스:
+
+| 모델 | 창 수 | Accuracy | Macro-F1 | Balanced Accuracy |
+|---|---:|---:|---:|---:|
+| **TCN (위치 + 각도)** | 231 | **1.0000** | **1.0000** | **1.0000** |
+| Dummy — most frequent | 231 | 0.2165 | 0.0712 | 0.2000 |
+| Dummy — stratified | 231 | 0.1965 ± 0.0208 | 0.1861 ± 0.0221 | 0.1883 ± 0.0225 |
+| Dummy — uniform | 231 | 0.1996 ± 0.0253 | 0.1944 ± 0.0252 | 0.1945 ± 0.0259 |
+
+UI-PRMD test에서 TCN의 Macro-F1은 가장 높은 기준선보다 약 **0.77** 높습니다. 따라서 모델은 클래스 비율만으로는 얻을 수 없는 관절 시계열 정보를 사용하고 있습니다. 다만 기준선과의 차이는 저장된 test 분할에 대한 결과이며, 위 한계와 마찬가지로 실제 웹캠 운동 인식 성능을 뜻하지 않습니다. Vicon 범위에서 dummy가 idle을 예측하면 오답으로 계산합니다.
+
+기준선의 train 라벨 분포는 창 수 기준 M01 149 · M03 112 · M04 158 · M09 136 · idle 82입니다. 계산은 노트북 4-1절에서 수행하며 scikit-learn 1.6.1 환경의 결과입니다. `stratified`·`uniform` 수치는 라이브러리 버전에 따라 소폭 달라질 수 있습니다.
+
+근거 파일: [baseline_comparison.csv](ui_prmd_tcn_output/baseline_comparison.csv), [baseline_comparison.md](ui_prmd_tcn_output/baseline_comparison.md), [metrics.json](ui_prmd_tcn_output/metrics.json)의 `baseline_comparison`.
+
+![Dummy baseline과 TCN 비교](ui_prmd_tcn_output/baseline_comparison.png)
+
 ### 현재 서비스 모델의 선택 근거
 
 위치와 각도를 결합한 TCN은 관절 굽힘뿐 아니라 발·손목의 상대 위치도 입력으로 활용하며, 학습과 서버에서 같은 특징을 계산할 수 있습니다. 저장된 모델은 검증 Macro-F1 기준으로 선택했고, TorchScript로 내보내 서버에서 로드합니다. 현재 지표는 이 모델의 테스트 결과이며, 특징 조합 간 우열이나 다른 구조 대비 개선 폭을 입증하는 비교 결과는 아닙니다.
@@ -300,8 +330,10 @@ Godot 게임은 기본 해상도 **640×320, 2:1 비율**로 주 화면에 배�
 
 | 항목 | 내용 |
 |---|---|
-| 배포 플랫폼 | |
-| 공개 URL | |
+| 배포 플랫폼 | 현재 미배포 — 로컬 FastAPI 서버(`uvicorn`)에서 실행 |
+| 공개 URL | 없음 |
+
+브라우저 카메라는 localhost 또는 HTTPS에서만 동작합니다. 외부에 배포하려면 HTTPS 인증서, CPU에서 PyTorch를 실행할 수 있는 서버, `/ws/pose` WebSocket 프록시 설정이 필요합니다.
 
 ## 8. 실행 방법
 
@@ -349,7 +381,12 @@ web/godot/
 
 서버 기본 모델 폴더는 `ui_prmd_tcn_output`입니다. 다른 폴더를 사용할 때는 실행 전에 `$env:POSE_MODEL_DIR = '모델_폴더_경로'`를 지정합니다. 재학습 시 가중치·메타데이터·전처리 파일을 **같은 학습 실행의 산출물로 함께 교체**한 뒤 서버를 재시작합니다.
 
-현재 클라이언트가 실제 요청하는 게임 경로는 `/static/godot/Motion%20Quest.html`이며 서버의 `/static`은 `web/`에 연결되어 있습니다. 따라서 게임 Web 내보내기 파일 전체를 **`web/godot/`**에 배치해야 합니다. 루트의 `godot/`와 혼동하지 않도록 주의합니다. 현재 서버 구성에서는 스레드 지원을 끈 Web 내보내기를 사용합니다. Godot 연결 코드는 [godot/PoseBridge.gd](godot/PoseBridge.gd)를 참고하며 동일 출처 iframe에서 부모 페이지의 상태를 읽는 방식입니다.
+현재 클라이언트가 실제 요청하는 게임 경로는 `/static/godot/Motion%20Quest.html`이며 서버의 `/static`은 `web/`에 연결되어 있습니다. 따라서 게임 Web 내보내기 파일 전체를 **`web/godot/`**에 배치해야 합니다. `.gitignore`의 `godot/` 규칙 때문에 이 폴더는 저장소에 포함되지 않으며, 대신 [web/godot.zip](web/godot.zip)으로 제공됩니다. 클론 후 다음과 같이 압축을 풉니다.
+
+```powershell
+Expand-Archive web/godot.zip -DestinationPath web
+```
+ 루트의 `godot/`와 혼동하지 않도록 주의합니다. 현재 서버 구성에서는 스레드 지원을 끈 Web 내보내기를 사용합니다. Godot 연결 코드는 [godot/PoseBridge.gd](godot/PoseBridge.gd)를 참고하며 동일 출처 iframe에서 부모 페이지의 상태를 읽는 방식입니다.
 
 ### Colab 재학습
 
@@ -395,12 +432,25 @@ node --test tests/test_*.mjs
 
 | 구분 | 내용 |
 |---|---|
-| Plus | |
-| Minus | |
-| Interesting | |
+| Plus | 웹캠 → MediaPipe → FastAPI·TCN → 브라우저 → Godot까지 전체 흐름을 직접 연결했습니다. 학습과 서버가 같은 특징 코드(`pose_features.py`)를 쓰고 전처리 해시로 이를 검사하기 때문에 학습과 추론의 불일치를 막을 수 있었습니다. 영상 없이 관절 좌표만 전송하는 구조도 갖췄습니다. |
+| Minus | 운동 데이터는 Vicon, idle은 웹캠으로 출처가 나뉘어 있어 test 100% 결과가 실제 웹캠 운동 인식을 보장하지 않습니다. 웹캠 데이터는 1명의 idle뿐이고, Validation F1이 epoch 1에서 이미 포화되어 모델 간 우열을 비교하기 어려웠습니다. |
+| Interesting | Dummy 기준선(Macro-F1 약 0.10~0.23)과 비교하면 TCN이 라벨 분포 이상의 정보를 사용한다는 점은 분명합니다. 반면 지표가 모두 1.0인 것 자체가 데이터 구성의 한계를 드러내는 신호이기도 했습니다. 센서가 다른 두 골격 체계를 12개 공통 관절로 맞추는 과정에서 좌표계(Vicon up=`+Z`, MediaPipe up=`−Y`)와 관절 정의 차이를 직접 다뤄야 했습니다. |
 
 ### 문제 해결 사례
 
+| 문제 | 원인 | 해결 |
+|---|---|---|
+| 스쿼트(M01)와 인라인 런지(M03)의 혼동 | 관절 각도만으로는 두 동작의 다리 굽힘이 비슷함 | 몸 기준 좌표로 정규화한 위치 36개를 각도 18개와 결합하여 발의 앞뒤 배치를 입력에 포함. 혼동 분석 그래프를 별도로 저장해 확인 |
+| 운동이 아닌 상태도 운동으로 분류됨 | UI-PRMD에 대기 상태 클래스가 없음 | 웹캠으로 idle을 직접 녹화하여 5번째 클래스로 추가. 사용하지 않는 M07 클래스는 제거 |
+| Vicon과 MediaPipe 골격 불일치 | 마커 39개와 landmark 33개의 정의·좌표축이 다름 | 좌우 12개 공통 관절을 정의하고 손목·골반은 마커 평균으로 근사. 축 방향을 메타데이터에 기록 |
+| 학습·서버 전처리 불일치 위험 | 노트북과 서버가 특징 코드를 각각 가지고 있음 | `pose_features.py`를 단일 원본으로 두고 `sync_notebook_features.py`로 노트북에 삽입. 서버는 시작 시 해시와 입력 계약을 검사 ||
+| 테스트 100%의 의미를 판단할 기준이 없음 | 비교 대상 없이 단일 모델 지표만 기록됨 | 노트북에 Dummy 기준선 비교(4-1절)를 추가해 결과물에 표·그래프로 저장 |
 
 ### 향후 개선 계획
+
+- **웹캠 운동 데이터 수집:** 4개 운동 모두를 여러 사람·촬영 각도·조명 조건에서 MediaPipe로 녹화하고, 사람 단위로 분할하여 평가합니다.
+- **센서 편향 제거:** 운동과 idle이 같은 센서에서 나오도록 데이터를 구성하여, 모델이 센서 차이를 단서로 쓰는지 확인합니다.
+- **실시간 품질 정책 통일:** 학습에서 쓰는 visibility·시간 간격 필터를 서버 추론에도 적용합니다.
+- **반복 횟수 검출:** 구간 카운트 대신 관절 각도 주기를 이용해 실제 반복 횟수를 셉니다.
+- **게임 반응 조정과 플레이 검증:** 동작별 확정 시간과 상호작용 타이밍을 조정하고, 오인식·반응 지연·조작 난이도를 사용자 테스트로 확인합니다.
 

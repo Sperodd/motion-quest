@@ -524,7 +524,7 @@ web/godot/
 
 서버 기본 모델 폴더는 `ui_prmd_tcn_output`입니다. 다른 폴더를 사용할 때는 실행 전에 `$env:POSE_MODEL_DIR = '모델_폴더_경로'`를 지정합니다. 재학습 시 가중치·메타데이터·전처리 파일을 **같은 학습 실행의 산출물로 함께 교체**한 뒤 서버를 재시작합니다.
 
-현재 클라이언트가 실제 요청하는 게임 경로는 `/static/godot/Motion%20Quest.html`이며 서버의 `/static`은 `web/`에 연결되어 있습니다. 따라서 게임 Web 내보내기 파일 전체를 **`web/godot/`**에 배치해야 합니다. `.gitignore`의 `godot/` 규칙 때문에 이 폴더는 저장소에 포함되지 않으며, 대신 [web/godot.zip](web/godot.zip)으로 제공됩니다. 클론 후 다음과 같이 압축을 풉니다.
+현재 클라이언트가 실제 요청하는 게임 경로는 `/static/godot/Motion%20Quest.html`이며 서버의 `/static`은 `web/`에 연결되어 있습니다. 따라서 게임 Web 내보내기 파일 전체를 **`web/godot/`** 에 배치해야 합니다. `.gitignore`의 `godot/` 규칙 때문에 이 폴더는 저장소에 포함되지 않으며, 대신 [web/godot.zip](web/godot.zip)으로 제공됩니다. 클론 후 다음과 같이 압축을 풉니다.
 
 ```powershell
 Expand-Archive web/godot.zip -DestinationPath web

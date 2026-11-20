@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Motion Quest 발표</title>
+<style>
+:root{
+  --bg:#0f1720; --paper:#fbfaf7; --ink:#18212b; --ink-2:#4a5562; --muted:#7a8592; --line:#dfe3e8;
+  --soft:#f1f3f5; --accent:#2a78d6; --accent-soft:#e6f0fb; --lstm:#eb6834; --lstm-soft:#fdeee7;
+  --dummy:#9aa3ad; --good:#0a7d4f; --warn:#b26a00;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);font-family:"Pretendard","Malgun Gothic","Apple SD Gothic Neo",sans-serif;color:var(--ink)}
+#stage{position:fixed;inset:0 0 48px 0;display:grid;place-items:center;overflow:hidden}
+.deck{position:relative;width:1280px;height:720px;transform-origin:center center;flex:none}
+.slide{position:absolute;inset:0;background:var(--paper);padding:56px 72px 52px;display:none;overflow:hidden}
+.slide.active{display:flex;flex-direction:column}
+.slide.dark{background:#121c27;color:#eef2f6}
+.kicker{font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+.dark .kicker{color:#7fb3ee}
+h1{font-size:64px;line-height:1.08;margin:0;letter-spacing:-.02em}
+h2{font-size:38px;line-height:1.2;margin:0 0 24px;letter-spacing:-.01em}
+h3{font-size:20px;margin:0 0 8px}
+p{margin:0;font-size:18px;line-height:1.6;color:var(--ink-2)}
+.dark p{color:#b9c4cf}
+.lead{font-size:22px;color:var(--ink-2)}
+.pg{position:absolute;right:40px;bottom:22px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.foot{position:absolute;left:72px;bottom:22px;font-size:13px;color:var(--muted)}
+.grid{display:grid;gap:20px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+.card p{font-size:16px}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-bottom:10px}
+.tag.o{background:var(--lstm-soft);color:#b8461b}.tag.g{background:#e7f4ee;color:var(--good)}.tag.n{background:var(--soft);color:var(--ink-2)}
+.big{font-size:44px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+.big small{font-size:18px;font-weight:600;color:var(--muted);margin-left:4px}
+table{border-collapse:collapse;width:100%;font-size:16px;font-variant-numeric:tabular-nums}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left}
+th{font-size:13px;color:var(--muted);font-weight:700;letter-spacing:.04em}
+td.n,th.n{text-align:right}
+tr.hl td{background:var(--accent-soft);font-weight:700}
+code{font-family:Consolas,monospace;font-size:.9em;background:var(--soft);padding:1px 6px;border-radius:5px}
+ul.clean{margin:0;padding:0;list-style:none}
+ul.clean li{font-size:17px;line-height:1.55;color:var(--ink-2);padding:6px 0 6px 20px;position:relative}
+ul.clean li::before{content:"";position:absolute;left:0;top:16px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+ul.clean li b{color:var(--ink)}
+.flow{display:flex;align-items:stretch;gap:0}
+.step{flex:1;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 14px 16px;position:relative}
+.step .no{font-size:12px;font-weight:800;color:var(--accent)}
+.step h3{font-size:17px;margin:4px 0 6px}
+.step p{font-size:13.5px;line-height:1.5}
+.arrow{width:26px;display:grid;place-items:center;color:var(--muted);font-size:20px;flex:none}
+.where{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;margin-top:8px}
+.shot{border-radius:10px;border:1px solid var(--line);width:100%;display:block;background:#fff}
+.cap{font-size:13.5px;color:var(--ink-2);margin-top:8px;line-height:1.45}
+.note{font-size:14px;color:var(--muted);margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}
+.dark .note{border-color:#2b3a4a;color:#8fa0b1}
+.pill{display:inline-flex;gap:8px;align-items:center;font-size:14px;color:var(--ink-2);margin-right:18px}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.arch{display:flex;flex-direction:column;gap:7px}
+.layer{border-radius:9px;padding:9px 14px;font-size:15px;display:flex;justify-content:space-between;border:1px solid var(--line);background:#fff}
+.layer b{font-weight:700}.layer span{color:var(--muted);font-size:13.5px}
+.layer.t{border-color:#b9d3f3;background:var(--accent-soft)}
+.layer.l{border-color:#f5c7b3;background:var(--lstm-soft)}
+svg text{font-family:inherit}
+.tip{position:absolute;pointer-events:none;background:#18212b;color:#fff;font-size:13px;padding:6px 9px;border-radius:7px;opacity:0;transition:opacity .1s;white-space:nowrap;z-index:5}
+/* nav */
+#bar{position:fixed;left:0;right:0;bottom:0;height:48px;display:flex;align-items:center;justify-content:center;gap:14px;color:#c9d3dd;font-size:14px}
+#bar button{background:#1d2a37;color:#e5ebf1;border:1px solid #2f3f50;border-radius:8px;padding:6px 14px;font:inherit;cursor:pointer}
+#bar button:hover{background:#273748}
+#bar button:focus-visible{outline:2px solid #7fb3ee;outline-offset:2px}
+#prog{position:fixed;left:0;bottom:46px;height:2px;background:var(--accent);transition:width .2s}
+aside.notes{display:none}
+body.show-notes aside.notes{display:block;position:absolute;left:0;right:0;bottom:0;background:#fff8d6;border-top:1px solid #e6d58a;font-size:15px;line-height:1.5;padding:10px 72px;color:#4a3d00;z-index:4}
+@media print{
+  @page{size:1280px 720px;margin:0}
+  html,body{background:#fff}
+  #bar,#prog{display:none}
+  #stage{position:static;display:block}
+  .deck{transform:none!important;width:auto;height:auto}
+  .slide{display:flex!important;flex-direction:column;position:relative;width:1280px;height:720px;break-after:page}
+  aside.notes{display:none!important}
+}
+</style>
+</head>
+<body>
+<div id="stage"><div class="deck" id="deck">
+
+<!-- 1. Title -->
+<section class="slide dark">
+  <div class="kicker">기계학습프로그래밍 · 기말 프로젝트</div>
+  <h1 style="margin-top:110px">Motion Quest</h1>
+  <p class="lead" style="font-size:28px;color:#cdd8e3;margin-top:14px">웹캠 동작 인식으로 움직이는 홈 트레이닝 게임</p>
+  <p style="margin-top:28px;font-size:18px">MediaPipe로 관절을 찾고, <b style="color:#fff">직접 학습한 TCN</b>이 3초 동안의 움직임을 읽어 게임 입력으로 바꿉니다.</p>
+  <div style="margin-top:auto;display:flex;gap:48px;font-size:16px;color:#b9c4cf">
+    <div><div style="color:#7f8fa0;font-size:12px;letter-spacing:.1em">발표자</div>202435119 한여원</div>
+    <div><div style="color:#7f8fa0;font-size:12px;letter-spacing:.1em">데모</div>motion-quest.duckdns.org</div>
+    <div><div style="color:#7f8fa0;font-size:12px;letter-spacing:.1em">코드</div>github.com/Sperodd/motion-quest</div>
+  </div>
+  <aside class="notes">웹캠만으로 운동 동작을 인식해 게임 입력으로 쓰는 프로젝트입니다. 오늘은 전체 흐름, 데이터, 모델, 결과, 서비스 순서로 발표합니다.</aside>
+</section>
+
+<!-- 2. Agenda -->
+<section class="slide">
+  <div class="kicker">목차</div>
+  <h2>오늘 다룰 내용</h2>
+  <div class="grid g3" style="margin-top:10px">
+    <div class="card"><span class="tag">01</span><h3>문제 정의</h3><p>왜 운동을 게임 입력으로 바꾸는가</p></div>
+    <div class="card"><span class="tag">02</span><h3>전체 흐름</h3><p>웹캠 → 관절 → 분류 → 게임</p></div>
+    <div class="card"><span class="tag">03</span><h3>데이터</h3><p>UI-PRMD + 직접 수집한 idle, 분할과 전처리</p></div>
+    <div class="card"><span class="tag">04</span><h3>모델</h3><p>제안 TCN vs 베이스라인 LSTM, 학습 설정</p></div>
+    <div class="card"><span class="tag">05</span><h3>평가와 선택</h3><p>Dummy·LSTM·TCN 비교, 오류 분석, 한계</p></div>
+    <div class="card"><span class="tag">06</span><h3>서비스와 회고</h3><p>배포, 화면, 문제 해결 사례, 개선 계획</p></div>
+  </div>
+</section>
+
+<!-- 3. Problem -->
+<section class="slide">
+  <div class="kicker">01 · 문제 정의</div>
+  <h2>혼자 하는 홈 트레이닝은 쉽게 지루해진다</h2>
+  <div class="grid g4">
+    <div class="card"><span class="tag n">Who</span><p>집에서 운동하고 싶지만 반복 운동에 쉽게 흥미를 잃는 사용자</p></div>
+    <div class="card"><span class="tag n">What</span><p>영상 시청·횟수 기록만으로는 재미와 즉각적인 반응이 부족</p></div>
+    <div class="card"><span class="tag n">When</span><p>집에서 PC와 웹캠으로 혼자 운동할 때</p></div>
+    <div class="card"><span class="tag n">Why</span><p>내 움직임이 게임에 반영되는 경험으로 참여 동기를 높이기</p></div>
+  </div>
+  <div class="grid g2" style="margin-top:22px">
+    <div class="card"><span class="tag">차별점</span><h3>몸이 곧 컨트롤러</h3><p>별도 장비 없이 웹캠만 사용합니다. 영상은 브라우저에 두고 <b>관절 좌표만</b> 서버로 보냅니다.</p></div>
+    <div class="card"><span class="tag g">정량 목표</span><h3>Test Macro-F1 ≥ 0.80</h3><p>5개 클래스(운동 4 + 대기)의 F1 평균으로, 클래스 불균형에도 공정하게 평가합니다.</p></div>
+  </div>
+</section>
+
+<!-- 4. Pipeline -->
+<section class="slide">
+  <div class="kicker">02 · 전체 흐름</div>
+  <h2>웹캠에서 게임까지, 6단계 파이프라인</h2>
+  <div class="flow">
+    <div class="step"><div class="no">01</div><h3>웹캠</h3><p>브라우저에서 카메라 프레임 획득</p><div class="where">BROWSER</div></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="no">02</div><h3>MediaPipe Lite</h3><p>사전 학습 모델로 12개 관절의 world XYZ 추출</p><div class="where">BROWSER</div></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="no">03</div><h3>WebSocket</h3><p>timestamp·XYZ·visibility만 JSON으로 전송 <code>/ws/pose</code></p><div class="where">NETWORK</div></div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-color:#b9d3f3;background:var(--accent-soft)"><div class="no">04</div><h3>특징 + TCN</h3><p>3초 버퍼 → 30 Hz 보간 → [1, 90, 54] → TorchScript TCN</p><div class="where">FASTAPI SERVER</div></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="no">05</div><h3>확정·카운트</h3><p>70% 이상 1초 유지 시 확정, idle→운동→idle이면 +1</p><div class="where">BROWSER</div></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="no">06</div><h3>Godot 게임</h3><p>같은 출처 iframe이 확정 동작을 읽어 캐릭터 행동으로</p><div class="where">BROWSER</div></div>
+  </div>
+  <div class="grid g3" style="margin-top:26px">
+    <div class="card"><span class="tag n">사전 학습</span><h3>MediaPipe Pose Lite</h3><p>이미지 → 관절 좌표. 학습하지 않고 그대로 사용</p></div>
+    <div class="card"><span class="tag">직접 학습</span><h3>TCN 동작 분류기</h3><p>관절 시계열 → 5개 클래스. 처음부터(scratch) 학습</p></div>
+    <div class="card"><span class="tag g">핵심 설계</span><h3>학습 = 추론 전처리</h3><p><code>pose_features.py</code> 하나를 노트북과 서버가 공유, 해시로 검사</p></div>
+  </div>
+  <p class="note">추론 주기 최소 250 ms(최대 약 4회/초) · 영상은 서버로 보내지 않고 관절 좌표만 전송 · 서버는 연결별로 최근 약 3초를 버퍼링</p>
+  <aside class="notes">관절 추정은 사전 학습된 MediaPipe, 동작 분류는 제가 직접 학습한 TCN으로 역할이 나뉩니다.</aside>
+</section>
+
+<!-- 5. Data -->
+<section class="slide">
+  <div class="kicker">03 · 데이터</div>
+  <h2>공개 재활 데이터 + 직접 수집한 대기 동작</h2>
+  <div class="grid g2" style="grid-template-columns:1.15fr 1fr">
+    <div class="card">
+      <span class="tag">UI-PRMD · University of Idaho</span>
+      <ul class="clean">
+        <li>건강한 참가자 <b>10명</b> × 운동 10종 × 10회 반복</li>
+        <li><b>Vicon</b> 광학 모션캡처 100 Hz, 마커 39개 XYZ</li>
+        <li>라이선스 <b>ODC PDDL v1.0</b> (퍼블릭 도메인)</li>
+        <li>선정 이유: 스쿼트·런지 등 게임 입력에 쓸 운동의 3D 관절 시계열</li>
+      </ul>
+      <span class="tag o" style="margin-top:12px">직접 수집 · MediaPipe 웹캠</span>
+      <ul class="clean">
+        <li>UI-PRMD에는 <b>대기(idle)</b> 상태가 없어 직접 녹화</li>
+        <li>1명 · 녹화 5개 · 4,499프레임 · 약 150초</li>
+      </ul>
+    </div>
+    <div>
+      <table>
+        <tr><th>코드</th><th>클래스</th><th>출처</th><th class="n">녹화</th></tr>
+        <tr><td>M01</td><td>Deep Squat</td><td>Vicon</td><td class="n">10</td></tr>
+        <tr><td>M03</td><td>Inline Lunge</td><td>Vicon</td><td class="n">9</td></tr>
+        <tr><td>M04</td><td>Side Lunge</td><td>Vicon</td><td class="n">10</td></tr>
+        <tr><td>M09</td><td>Shoulder Int.-Ext. Rotation</td><td>Vicon</td><td class="n">10</td></tr>
+        <tr><td>idle</td><td>Standing Rest</td><td>웹캠</td><td class="n">5</td></tr>
+      </table>
+      <div class="grid g3" style="margin-top:20px;gap:12px">
+        <div><div class="big">44</div><p style="font-size:14px">녹화</p></div>
+        <div><div class="big">111.5<small>k</small></div><p style="font-size:14px">원본 프레임</p></div>
+        <div><div class="big">20<small>분</small></div><p style="font-size:14px">총 녹화 시간</p></div>
+      </div>
+    </div>
+  </div>
+  <p class="note">M03_s03은 원본 데이터에서 누락되어 있으며 가상 샘플로 채우지 않았습니다.</p>
+</section>
+
+<!-- 6. Split & distribution -->
+<section class="slide">
+  <div class="kicker">03 · 데이터 분할</div>
+  <h2>사람 단위로 나눠 처음 보는 사람으로 평가</h2>
+  <div class="grid g2" style="grid-template-columns:1.25fr 1fr">
+    <div>
+      <table>
+        <tr><th>클래스</th><th class="n">Train</th><th class="n">Val</th><th class="n">Test</th><th class="n">비율</th></tr>
+        <tr><td>M01 Deep Squat</td><td class="n">149</td><td class="n">59</td><td class="n">52</td><td class="n">23.4%</td></tr>
+        <tr><td>M03 Inline Lunge</td><td class="n">112</td><td class="n">61</td><td class="n">51</td><td class="n">20.2%</td></tr>
+        <tr><td>M04 Side Lunge</td><td class="n">158</td><td class="n">56</td><td class="n">50</td><td class="n">23.8%</td></tr>
+        <tr><td>M09 Shoulder Rotation</td><td class="n">136</td><td class="n">38</td><td class="n">51</td><td class="n">20.3%</td></tr>
+        <tr><td>idle Standing Rest</td><td class="n">82</td><td class="n">27</td><td class="n">27</td><td class="n">12.3%</td></tr>
+        <tr class="hl"><td>합계 (90프레임 창)</td><td class="n">637</td><td class="n">241</td><td class="n">231</td><td class="n">1,109</td></tr>
+      </table>
+      <p style="font-size:15px;margin-top:12px">idle이 12.3%로 적어 <b>클래스 가중 Cross Entropy</b>로 보정하고, Macro-F1·Balanced Accuracy로 평가합니다.</p>
+    </div>
+    <div class="grid" style="gap:14px">
+      <div class="card"><span class="tag">참가자 분할 6 : 2 : 2</span><p>Train <b>s01–s06</b> · Val <b>s07–s08</b> · Test <b>s09–s10</b><br>창 수 비율 57.4% : 21.7% : 20.8%</p></div>
+      <div class="card"><span class="tag n">누수 방지</span><p>녹화 단위로 먼저 나눈 뒤 창을 생성합니다. 겹치는 창이 분할을 넘나들지 않습니다.</p></div>
+      <div class="card"><span class="tag n">재현성</span><p>Random seed <b>42</b> 고정 (Python·NumPy·PyTorch). 웹캠 idle 녹화는 3 : 1 : 1.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. Preprocessing -->
+<section class="slide">
+  <div class="kicker">03 · 전처리</div>
+  <h2>센서가 달라도 같은 입력이 되도록</h2>
+  <div class="grid g4" style="gap:14px">
+    <div class="card"><span class="tag">1</span><h3>결측 보간</h3><p>결측률 5%·연속 30프레임 이하만 보간, 초과 시 중단</p></div>
+    <div class="card"><span class="tag">2</span><h3>공통 12관절</h3><p>Vicon 마커 117열 → 어깨·팔꿈치·손목·골반·무릎·발목 좌우</p></div>
+    <div class="card"><span class="tag">3</span><h3>30 Hz 재표본화</h3><p>Vicon <code>resample_poly(3,10)</code>, 웹캠은 타임스탬프 보간</p></div>
+    <div class="card"><span class="tag">4</span><h3>3초 창</h3><p>90프레임, 30프레임 간격. 녹화 경계를 넘지 않음</p></div>
+    <div class="card"><span class="tag">5</span><h3>몸 기준 정규화</h3><p>골반 중심 이동 · 몸통 길이로 크기 · 좌우/수직/깊이 축</p></div>
+    <div class="card"><span class="tag">6</span><h3>각도 18개</h3><p>같은 XYZ에서 내각·기울기·좌우 차이 계산 → [0, 1]</p></div>
+    <div class="card"><span class="tag">7</span><h3>표준화</h3><p>train 평균·표준편차만 사용, 모델 내부에서 수행</p></div>
+    <div class="card"><span class="tag">8</span><h3>좌우 반전 증강</h3><p>train에서 50% 확률로 좌우 관절 교환</p></div>
+  </div>
+  <div class="card" style="margin-top:18px;display:flex;align-items:center;gap:28px">
+    <div style="font-size:15px;color:var(--muted);flex:none">모델 입력 1개</div>
+    <div style="font-size:26px;font-weight:800"><span style="color:var(--accent)">[90 프레임</span> × <span>54 특징]</span></div>
+    <div style="font-size:16px;color:var(--ink-2)">= 위치 36 (12관절 × XYZ) + 각도 18 · 위치는 발의 배치, 각도는 관절 굽힘을 표현</div>
+  </div>
+</section>
+
+<!-- 8. TCN -->
+<section class="slide">
+  <div class="kicker">04 · 제안 모델</div>
+  <h2>TCN — 시간축을 따라 움직임을 읽는 합성곱</h2>
+  <div class="grid g2" style="grid-template-columns:1fr 1.1fr;gap:34px">
+    <div class="arch">
+      <div class="layer"><b>입력</b><span>[B, 90, 54]</span></div>
+      <div class="layer"><b>채널별 표준화</b><span>train 통계</span></div>
+      <div class="layer t"><b>Residual Block 1</b><span>64ch · dilation 1</span></div>
+      <div class="layer t"><b>Residual Block 2</b><span>64ch · dilation 2</span></div>
+      <div class="layer t"><b>Residual Block 3</b><span>64ch · dilation 4</span></div>
+      <div class="layer t"><b>Residual Block 4</b><span>64ch · dilation 8</span></div>
+      <div class="layer"><b>시간축 평균 pooling</b><span>90 → 1</span></div>
+      <div class="layer"><b>Linear</b><span>64 → 5 클래스</span></div>
+    </div>
+    <div class="grid" style="gap:14px;align-content:start">
+      <div class="card"><span class="tag">왜 TCN인가</span><p>한 프레임만으로는 스쿼트의 서 있는 순간과 대기 자세를 구분할 수 없습니다. <b>최근 3초의 흐름</b>을 함께 봐야 합니다.</p></div>
+      <div class="card"><span class="tag n">구조</span><p>Block = causal Conv1d 2개 + LayerNorm·ReLU·Dropout. Dilation 1→8로 <b>수용 영역 61프레임</b>.</p></div>
+      <div class="grid g2" style="gap:14px">
+        <div class="card"><div class="big">101,765</div><p style="font-size:14px">파라미터</p></div>
+        <div class="card"><div class="big">Scratch</div><p style="font-size:14px">무작위 초기화부터 학습</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 9. LSTM baseline -->
+<section class="slide">
+  <div class="kicker">04 · 베이스라인 모델</div>
+  <h2>LSTM — 같은 조건에서 구조만 바꿔 비교</h2>
+  <div class="grid g2" style="grid-template-columns:1fr 1.25fr;gap:34px">
+    <div class="arch">
+      <div class="layer"><b>입력</b><span>[B, 90, 54]</span></div>
+      <div class="layer"><b>채널별 표준화</b><span>TCN과 동일</span></div>
+      <div class="layer l"><b>LSTM layer 1</b><span>hidden 64</span></div>
+      <div class="layer l"><b>LSTM layer 2</b><span>hidden 64 · dropout 0.2</span></div>
+      <div class="layer"><b>마지막 시점 hidden state</b><span>t = 90</span></div>
+      <div class="layer"><b>Dropout → Linear</b><span>64 → 5 클래스</span></div>
+      <p style="font-size:15px;margin-top:10px">파라미터 <b>64,325</b> · 시계열 분류의 대표 구조라 비교 기준으로 선택</p>
+    </div>
+    <div>
+      <table>
+        <tr><th>항목</th><th>TCN (제안)</th><th>LSTM (베이스라인)</th></tr>
+        <tr><td>시간 처리</td><td>dilated 합성곱 + 평균 pooling</td><td>순환 상태 + 마지막 시점</td></tr>
+        <tr><td>입력·분할·증강</td><td colspan="2" style="text-align:center">동일</td></tr>
+        <tr><td>Optimizer</td><td colspan="2" style="text-align:center">AdamW · lr 0.001 · wd 0.0001</td></tr>
+        <tr><td>Batch · Epoch</td><td colspan="2" style="text-align:center">64 · 최대 100</td></tr>
+        <tr><td>Loss</td><td colspan="2" style="text-align:center">클래스 가중 Cross Entropy</td></tr>
+        <tr><td>모델 선택</td><td colspan="2" style="text-align:center">Val Macro-F1 최고 · patience 15</td></tr>
+        <tr><td>Seed</td><td colspan="2" style="text-align:center">42 (LSTM 학습 직전 재설정)</td></tr>
+      </table>
+      <p style="font-size:15px;margin-top:14px">구조 외 조건을 모두 맞춰, 성능 차이가 <b>모델 구조에서만</b> 나오도록 했습니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 10. Training log -->
+<section class="slide">
+  <div class="kicker">04 · 학습 로그</div>
+  <h2>TCN은 1 epoch, LSTM은 4 epoch 만에 수렴</h2>
+  <div class="grid g2" style="grid-template-columns:1.35fr 1fr;gap:30px">
+    <div class="card" style="position:relative;padding:16px 18px 10px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3 style="font-size:16px;margin:0">Validation Macro-F1 (epoch 1–7)</h3>
+        <div><span class="pill"><span class="sw" style="background:var(--accent)"></span>TCN</span><span class="pill" style="margin-right:0"><span class="sw" style="background:var(--lstm)"></span>LSTM</span></div>
+      </div>
+      <svg id="curve" viewBox="0 0 600 330" width="100%" role="img" aria-label="TCN과 LSTM의 epoch별 검증 Macro-F1"></svg>
+      <div class="tip" id="tip-curve"></div>
+    </div>
+    <div class="grid" style="gap:14px;align-content:start">
+      <table>
+        <tr><th>모델</th><th class="n">실행 epoch</th><th class="n">선택 epoch</th><th class="n">최고 Val F1</th></tr>
+        <tr><td>TCN</td><td class="n">16</td><td class="n">1</td><td class="n">1.0000</td></tr>
+        <tr><td>LSTM</td><td class="n">19</td><td class="n">4</td><td class="n">1.0000</td></tr>
+      </table>
+      <div class="card"><p>두 모델 모두 Val F1이 1.0에 도달한 뒤 15 epoch 동안 개선이 없어 <b>early stopping</b>으로 종료했습니다.</p></div>
+      <div class="card" style="border-color:#f1d29a;background:#fff9ec"><p><b>Validation 포화:</b> 두 모델 모두 1.0이라 Val만으로는 우열을 가릴 수 없었습니다 → 최종 선택은 Test 지표로.</p></div>
+      <p style="font-size:13px;color:var(--muted)">로그: history.csv · lstm_history.csv</p>
+    </div>
+  </div>
+</section>
+
+<!-- 11. Results -->
+<section class="slide">
+  <div class="kicker">05 · 평가 결과</div>
+  <h2>Test 231개 창에서 TCN이 가장 높다</h2>
+  <div class="grid g2" style="grid-template-columns:1fr 1.15fr;gap:30px">
+    <div class="card" style="position:relative;padding:16px 18px 8px">
+      <h3 style="font-size:16px;margin:0 0 4px">Test Macro-F1</h3>
+      <svg id="bars" viewBox="0 0 520 300" width="100%" role="img" aria-label="모델별 test Macro-F1 막대 그래프"></svg>
+      <div class="tip" id="tip-bars"></div>
+    </div>
+    <div>
+      <table>
+        <tr><th>모델</th><th class="n">Accuracy</th><th class="n">Macro-F1</th><th class="n">Bal. Acc.</th><th class="n">녹화 Acc.</th></tr>
+        <tr class="hl"><td>TCN (제안) ✔</td><td class="n">1.0000</td><td class="n">1.0000</td><td class="n">1.0000</td><td class="n">1.0000</td></tr>
+        <tr><td>LSTM (베이스라인)</td><td class="n">0.9524</td><td class="n">0.9558</td><td class="n">0.9569</td><td class="n">1.0000</td></tr>
+        <tr><td>Dummy most frequent</td><td class="n">0.2165</td><td class="n">0.0712</td><td class="n">0.2000</td><td class="n">—</td></tr>
+        <tr><td>Dummy stratified</td><td class="n">0.1965</td><td class="n">0.1861</td><td class="n">0.1883</td><td class="n">—</td></tr>
+        <tr><td>Dummy uniform</td><td class="n">0.1996</td><td class="n">0.1944</td><td class="n">0.1945</td><td class="n">—</td></tr>
+      </table>
+      <div class="grid g2" style="gap:14px;margin-top:16px">
+        <div class="card"><span class="tag g">목표 달성</span><p>Macro-F1 1.0000 ≥ 목표 0.80</p></div>
+        <div class="card"><span class="tag n">Dummy</span><p>라벨 분포만 쓰는 기준선. 모델이 실제 관절 정보를 쓰는지 확인</p></div>
+      </div>
+    </div>
+  </div>
+  <p class="note">Dummy는 seed 42–51, 10회 평균 · 녹화 Acc.는 녹화별 다수결 정확도</p>
+</section>
+
+<!-- 12. Error analysis -->
+<section class="slide">
+  <div class="kicker">05 · 오류 분석</div>
+  <h2>LSTM의 오답 11개는 모두 한 사람의 어깨 회전</h2>
+  <div class="grid g2" style="grid-template-columns:1.2fr 1fr;gap:28px">
+    <div>
+      <img class="shot" style="width:auto;max-width:100%;max-height:440px;margin:0 auto" src="../ui_prmd_tcn_output/lstm_confusion_matrix.png" alt="LSTM test 혼동행렬">
+      <div class="cap" style="text-align:center">LSTM test 혼동행렬 — TCN은 대각선만 채워짐 (lstm_confusion_matrix.png)</div>
+    </div>
+    <div class="grid" style="gap:12px;align-content:start">
+      <table>
+        <tr><th>실제</th><th>LSTM 예측</th><th class="n">창</th><th class="n">확신도</th></tr>
+        <tr><td>M09 어깨 회전</td><td>M01 스쿼트</td><td class="n">6</td><td class="n">0.35–0.57</td></tr>
+        <tr><td>M09 어깨 회전</td><td>M04 사이드 런지</td><td class="n">4</td><td class="n">0.37–0.39</td></tr>
+        <tr><td>M01 스쿼트</td><td>M09 어깨 회전</td><td class="n">1</td><td class="n">0.49</td></tr>
+      </table>
+      <ul class="clean">
+        <li><b>모두 참가자 s10</b>, 같은 창에서 TCN은 확신도 0.93–0.97로 정답</li>
+        <li>M09는 하체가 거의 움직이지 않아 단서가 <b>손목·팔꿈치의 작은 변화</b>뿐</li>
+        <li>LSTM은 <b>마지막 시점</b>만, TCN은 <b>시간축 전체 평균</b>으로 판단 → 작은 반복 변화에 TCN이 유리하다는 가설</li>
+        <li>오답 확신도는 모두 0.6 미만 → 서비스의 70% 확정 기준에서는 대부분 걸러짐</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 13. Selection & limits -->
+<section class="slide">
+  <div class="kicker">05 · 최종 선택과 한계</div>
+  <h2>규칙대로 TCN을 선택, 하지만 100%는 조심해서 읽는다</h2>
+  <div class="grid g2" style="gap:24px">
+    <div class="card">
+      <span class="tag g">선택 규칙 (노트북 코드로 고정)</span>
+      <div style="font-size:19px;font-weight:700;margin:6px 0 14px">Test Macro-F1 → Balanced Acc. → 동률이면 서비스 모델</div>
+      <ul class="clean">
+        <li>TCN이 세 지표 모두 우세 (Macro-F1 <b>+0.0442</b>)</li>
+        <li>LSTM이 파라미터는 37% 적지만, 서버 처리 <b>7 ms</b>(캡처 기준)로 TCN도 충분히 빠름</li>
+        <li>TorchScript로 내보내 서버가 그대로 로드</li>
+      </ul>
+    </div>
+    <div class="card" style="border-color:#f1d29a;background:#fffaf0">
+      <span class="tag" style="background:#fbecc9;color:var(--warn)">결과의 한계</span>
+      <ul class="clean">
+        <li><b>센서 = 라벨 단서 가능성:</b> 운동은 Vicon, idle은 웹캠</li>
+        <li><b>웹캠 운동 미검증:</b> 웹캠 test에는 idle만 있음</li>
+        <li><b>작은 test:</b> 참가자 2명, seed 1회. 로컬 CPU 재실행에서 LSTM F1은 0.99로 변동</li>
+        <li><b>Test로 선택:</b> Val 포화로 test를 선택에 사용 → 다소 낙관적</li>
+      </ul>
+    </div>
+  </div>
+  <p class="note">확인된 범위: “저장된 test 분할에서 TCN이 더 안정적이었다.” 실제 웹캠 운동 인식 성능은 추가 수집이 필요합니다.</p>
+</section>
+
+<!-- 14. Service -->
+<section class="slide">
+  <div class="kicker">06 · 서비스 프로토타입</div>
+  <h2>실제 웹캠으로 플레이하는 화면</h2>
+  <div class="grid g2" style="grid-template-columns:1.45fr 1fr;gap:24px;margin-top:-6px">
+    <div><img class="shot" src="../images/pose.png" alt="스쿼트 인식 중"><div class="cap"><b>② 인식 중</b> — 실제 웹캠 스쿼트가 M01 <b>93.9%</b>로 1초 유지되어 <b>딥 스쿼트로 확정</b>(확정 점수 91.95%, 서버 처리 7 ms)</div></div>
+    <div class="grid" style="gap:12px;align-content:start">
+      <div><img class="shot" src="../images/menu.png" alt="시작 화면"><div class="cap"><b>① 시작 화면</b> — 가운데 Godot 게임, 오른쪽 웹캠과 모델 점수</div></div>
+      <div><img class="shot" src="../images/count.png" alt="운동별 카운트"><div class="cap"><b>③ 기록</b> — 운동별 구간 카운트와 규칙 안내</div></div>
+      <div class="card" style="padding:12px 16px"><p style="font-size:15px"><b>70% 이상 · 1초 유지</b> → 동작 확정<br><b>idle → 운동 → idle</b> → +1 카운트</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 15. Deploy -->
+<section class="slide">
+  <div class="kicker">06 · 배포</div>
+  <h2>OCI에 배포, HTTPS 공개 URL로 접속</h2>
+  <div class="grid g2" style="gap:24px">
+    <div class="card">
+      <span class="tag">공개 URL</span>
+      <div style="font-size:30px;font-weight:800;margin:6px 0 16px;color:var(--accent)">motion-quest.duckdns.org</div>
+      <ul class="clean">
+        <li><b>Oracle Cloud</b> CPU 인스턴스에서 FastAPI + PyTorch 실행</li>
+        <li>브라우저 카메라 사용을 위해 <b>HTTPS 인증서</b> 적용</li>
+        <li><code>/ws/pose</code> <b>WebSocket 프록시</b> 설정</li>
+        <li>서버 시작 시 모델·전처리 해시와 입력 계약 검사</li>
+      </ul>
+    </div>
+    <div>
+      <h3>잘못된 입력 처리</h3>
+      <table style="font-size:15px">
+        <tr><th>상황</th><th>처리</th></tr>
+        <tr><td>관절 수 ≠ 12, 비유한 좌표, 역행 timestamp</td><td><code>invalid_input</code> + 원인 메시지</td></tr>
+        <tr><td>메시지 크기 초과 / 다른 출처</td><td>연결 종료 (1009 / 1008)</td></tr>
+        <tr><td>관절을 찾지 못함</td><td>버퍼 유지, 안내 문구</td></tr>
+        <tr><td>1.5초 이상 예측 없음</td><td>후보 초기화, 마지막 확정 유지</td></tr>
+        <tr><td>카메라 권한 거부</td><td>권한·브라우저 안내</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 16. Lessons: problem solving -->
+<section class="slide">
+  <div class="kicker">07 · Lessons Learned</div>
+  <h2>문제 → 원인 → 시도 → 결과</h2>
+  <table style="font-size:16px;line-height:1.5">
+    <tr><th style="width:20%">문제</th><th style="width:22%">원인</th><th>시도</th><th style="width:27%">결과</th></tr>
+    <tr><td><b>스쿼트 ↔ 인라인 런지 혼동</b></td><td>각도만으로는 다리 굽힘이 비슷</td><td>몸 기준 위치 36개를 각도 18개와 결합해 발 배치 반영</td><td>M01↔M03 혼동률 0 (Vicon test)</td></tr>
+    <tr><td><b>쉬는 중에도 운동으로 분류</b></td><td>UI-PRMD에 대기 클래스 없음</td><td>웹캠 idle 직접 녹화(5개, 150초)해 5번째 클래스로</td><td>idle 27창 정분류, 구간 카운트 구현</td></tr>
+    <tr><td><b>Vicon ↔ MediaPipe 골격 불일치</b></td><td>마커 39개 vs landmark 33개, 축 방향 다름</td><td>공통 12관절 정의, 마커 평균 근사, 몸 기준 좌표계</td><td>웹캠 스쿼트를 M01 93.9%로 인식·확정 (정성 예시)</td></tr>
+    <tr><td><b>학습·서버 전처리 불일치</b></td><td>특징 코드가 두 곳에 존재</td><td>단일 원본 + 노트북 동기화 + 해시 검사</td><td>불일치 시 서버가 시작 단계에서 중단</td></tr>
+    <tr><td><b>100%의 의미를 모름</b></td><td>비교 대상이 없음</td><td>Dummy 3종 + LSTM 베이스라인, 선택 규칙 코드화</td><td>Dummy ≤0.19 · LSTM 0.956 · TCN 1.0</td></tr>
+  </table>
+</section>
+
+<!-- 17. PMI -->
+<section class="slide">
+  <div class="kicker">07 · PMI</div>
+  <h2>잘된 점, 아쉬운 점, 흥미로운 점</h2>
+  <div class="grid g3" style="gap:18px">
+    <div class="card"><span class="tag g">Plus</span>
+      <ul class="clean"><li>학습부터 공개 배포까지 한 서비스로 완성</li><li>전처리 단일 원본 + 해시로 학습·추론 일치</li><li>같은 조건의 공정한 모델 비교</li><li>영상 없이 좌표만 전송</li></ul></div>
+    <div class="card"><span class="tag o">Minus</span>
+      <ul class="clean"><li>운동은 Vicon, idle은 웹캠 — 센서가 단서일 수 있음</li><li>웹캠 데이터는 1명의 idle뿐</li><li>Val 포화로 test에서 선택</li><li>seed 1회, 분산 미제시</li></ul></div>
+    <div class="card"><span class="tag">Interesting</span>
+      <ul class="clean"><li>100%가 오히려 데이터 한계의 경고 신호</li><li>Val이 같던 두 모델이 test에서 갈림</li><li>두 골격 체계의 좌표계 차이(+Z vs −Y)를 직접 다룸</li></ul></div>
+  </div>
+</section>
+
+<!-- 18. Next -->
+<section class="slide dark">
+  <div class="kicker">향후 개선 계획</div>
+  <h2 style="color:#fff">다음 단계</h2>
+  <div class="grid g3" style="gap:18px">
+    <div class="card" style="background:#182634;border-color:#2b3a4a"><span class="tag">데이터</span><p style="color:#c9d3dd">4개 운동 모두를 여러 사람·각도·조명에서 웹캠으로 수집하고, 같은 센서로 운동과 idle을 구성해 센서 편향 제거</p></div>
+    <div class="card" style="background:#182634;border-color:#2b3a4a"><span class="tag o">모델</span><p style="color:#c9d3dd">여러 seed 반복 학습으로 평균 ± 표준편차 비교, 특징 조합(각도/위치/둘 다) 비교, 웹캠 데이터로 재평가</p></div>
+    <div class="card" style="background:#182634;border-color:#2b3a4a"><span class="tag g">서비스</span><p style="color:#c9d3dd">학습과 같은 품질 필터를 서버에 적용, 관절 각도 주기로 실제 반복 횟수 검출, 사용자 테스트로 반응 조정</p></div>
+  </div>
+  <div style="margin-top:auto">
+    <div style="font-size:52px;font-weight:800;color:#fff">감사합니다</div>
+    <p style="margin-top:8px">Q&amp;A · 202435119 한여원 · motion-quest.duckdns.org</p>
+  </div>
+</section>
+
+</div></div>
+<div id="prog"></div>
+<div id="bar">
+  <button id="prev" aria-label="이전 슬라이드">← 이전</button>
+  <span id="count">1 / 1</span>
+  <button id="next" aria-label="다음 슬라이드">다음 →</button>
+  <button id="notesBtn" aria-label="발표자 노트 표시">노트 (N)</button>
+</div>
+<script>
+(function(){
+  const deck=document.getElementById('deck');
+  const slides=[...deck.querySelectorAll('.slide')];
+  const N=slides.length;
+  slides.forEach((s,i)=>{const p=document.createElement('div');p.className='pg';p.textContent=(i+1)+' / '+N;s.appendChild(p);});
+  let cur=0;
+  function readHash(){const n=parseInt(location.hash.slice(1),10);return n>=1&&n<=N?n-1:0;}
+  function show(i){
+    cur=Math.max(0,Math.min(N-1,i));
+    slides.forEach((s,k)=>s.classList.toggle('active',k===cur));
+    document.getElementById('count').textContent=(cur+1)+' / '+N;
+    document.getElementById('prog').style.width=((cur+1)/N*100)+'%';
+    if(location.hash!=='#'+(cur+1)) history.replaceState(null,'','#'+(cur+1));
+  }
+  function fit(){
+    const st=document.getElementById('stage');
+    const k=Math.min(st.clientWidth/1280,st.clientHeight/720);
+    deck.style.transform='scale('+k+')';
+  }
+  document.getElementById('prev').onclick=()=>show(cur-1);
+  document.getElementById('next').onclick=()=>show(cur+1);
+  document.getElementById('notesBtn').onclick=()=>document.body.classList.toggle('show-notes');
+  document.addEventListener('keydown',e=>{
+    if(['ArrowRight','PageDown',' ','Enter'].includes(e.key)){e.preventDefault();show(cur+1);}
+    else if(['ArrowLeft','PageUp','Backspace'].includes(e.key)){e.preventDefault();show(cur-1);}
+    else if(e.key==='Home')show(0);
+    else if(e.key==='End')show(N-1);
+    else if(e.key==='n'||e.key==='N')document.body.classList.toggle('show-notes');
+    else if(e.key==='f'||e.key==='F'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{});}
+  });
+  window.addEventListener('resize',fit);
+  window.addEventListener('hashchange',()=>show(readHash()));
+  fit(); show(readHash());
+
+  // ---------- charts ----------
+  const NS='http://www.w3.org/2000/svg';
+  function el(tag,attrs,parent,text){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(text!=null)e.textContent=text;parent&&parent.appendChild(e);return e;}
+  function tipper(id,svg){
+    const tip=document.getElementById(id), box=svg.parentElement;
+    return {show(evt,html){tip.innerHTML=html;tip.style.opacity=1;
+      const r=box.getBoundingClientRect(), s=r.width/box.offsetWidth;
+      tip.style.left=((evt.clientX-r.left)/s+12)+'px';tip.style.top=((evt.clientY-r.top)/s-34)+'px';},
+      hide(){tip.style.opacity=0;}};
+  }
+  const BLUE='#2a78d6', ORANGE='#eb6834', GRAY='#9aa3ad', GRID='#e6e9ed', AX='#7a8592';
+
+  // Validation Macro-F1 curve
+  (function(){
+    const svg=document.getElementById('curve');
+    const tcn=[1,1,1,1,1,1,1], lstm=[0.8387,0.9806,0.9956,1,1,1,1];
+    const L=52,R=74,T=18,B=40,W=600,H=330, y0=0.8,y1=1.01;
+    const x=i=>L+i*(W-L-R)/6, y=v=>T+(y1-v)/(y1-y0)*(H-T-B);
+    [0.80,0.85,0.90,0.95,1.00].forEach(v=>{el('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),stroke:GRID,'stroke-width':1},svg);
+      el('text',{x:L-8,y:y(v)+4,'text-anchor':'end','font-size':12,fill:AX},svg,v.toFixed(2));});
+    for(let i=0;i<7;i++)el('text',{x:x(i),y:H-B+20,'text-anchor':'middle','font-size':12,fill:AX},svg,i+1);
+    el('text',{x:(L+W-R)/2,y:H-4,'text-anchor':'middle','font-size':12,fill:AX},svg,'epoch');
+    const path=(d,c)=>el('path',{d:d.map((v,i)=>(i?'L':'M')+x(i)+' '+y(v)).join(' '),fill:'none',stroke:c,'stroke-width':2,'stroke-linejoin':'round'},svg);
+    path(lstm,ORANGE); path(tcn,BLUE);
+    lstm.forEach((v,i)=>el('circle',{cx:x(i),cy:y(v),r:4.5,fill:ORANGE,stroke:'#fff','stroke-width':2},svg));
+    tcn.forEach((v,i)=>el('circle',{cx:x(i),cy:y(v),r:4.5,fill:BLUE,stroke:'#fff','stroke-width':2},svg));
+    el('text',{x:W-R+8,y:y(1)-6,'font-size':13,fill:'#18212b','font-weight':700},svg,'TCN');
+    el('text',{x:W-R+8,y:y(1)+14,'font-size':13,fill:'#18212b','font-weight':700},svg,'LSTM');
+    el('text',{x:x(0)+10,y:y(lstm[0])+4,'font-size':12,fill:'#4a5562'},svg,'0.839');
+    const cross=el('line',{y1:T,y2:H-B,stroke:'#18212b','stroke-width':1,'stroke-dasharray':'3 3',opacity:0},svg);
+    const t=tipper('tip-curve',svg);
+    for(let i=0;i<7;i++){
+      const hit=el('rect',{x:x(i)-(W-L-R)/12,y:T,width:(W-L-R)/6,height:H-T-B,fill:'transparent'},svg);
+      hit.addEventListener('mousemove',e=>{cross.setAttribute('x1',x(i));cross.setAttribute('x2',x(i));cross.setAttribute('opacity',.5);
+        t.show(e,'epoch '+(i+1)+'<br>TCN '+tcn[i].toFixed(4)+'<br>LSTM '+lstm[i].toFixed(4));});
+      hit.addEventListener('mouseleave',()=>{cross.setAttribute('opacity',0);t.hide();});
+    }
+  })();
+
+  // Test Macro-F1 bars
+  (function(){
+    const svg=document.getElementById('bars');
+    const data=[['TCN (제안)',1.0,BLUE],['LSTM (베이스라인)',0.9558,ORANGE],['Dummy uniform',0.1944,GRAY],['Dummy stratified',0.1861,GRAY],['Dummy most frequent',0.0712,GRAY]];
+    const L=150,R=60,T=10,W=520,H=300,bh=26,gap=(H-T-30-data.length*bh)/(data.length-1);
+    const x=v=>L+v*(W-L-R);
+    [0,0.25,0.5,0.75,1].forEach(v=>{el('line',{x1:x(v),x2:x(v),y1:T,y2:H-28,stroke:GRID},svg);
+      el('text',{x:x(v),y:H-10,'text-anchor':'middle','font-size':12,fill:AX},svg,v.toFixed(2));});
+    const tg=el('line',{x1:x(0.8),x2:x(0.8),y1:T-4,y2:H-28,stroke:'#0a7d4f','stroke-width':1.5,'stroke-dasharray':'4 3'},svg);
+    el('text',{x:x(0.8)-4,y:H-34,'text-anchor':'end','font-size':11,fill:'#0a7d4f'},svg,'목표 0.80');
+    const t=tipper('tip-bars',svg);
+    data.forEach((d,i)=>{
+      const yy=T+i*(bh+gap);
+      el('text',{x:L-10,y:yy+bh/2+5,'text-anchor':'end','font-size':13,fill:'#18212b'},svg,d[0]);
+      const w=Math.max(2,x(d[1])-L);
+      el('path',{d:`M${L} ${yy} H${L+w-4} Q${L+w} ${yy} ${L+w} ${yy+4} V${yy+bh-4} Q${L+w} ${yy+bh} ${L+w-4} ${yy+bh} H${L} Z`,fill:d[2]},svg);
+      el('text',{x:L+w+6,y:yy+bh/2+5,'font-size':13,fill:'#18212b','font-weight':i<2?700:400},svg,d[1].toFixed(i<2?4:3));
+      const hit=el('rect',{x:0,y:yy-gap/2,width:W,height:bh+gap,fill:'transparent'},svg);
+      hit.addEventListener('mousemove',e=>t.show(e,d[0]+'<br>Macro-F1 '+d[1].toFixed(4)));
+      hit.addEventListener('mouseleave',()=>t.hide());
+    });
+  })();
+})();
+</script>
+</body>
+</html>
